@@ -1,0 +1,42 @@
+\chapter{Entorno experimental}
+\label{chap:entorno}
+
+\section{Descripción del clúster HPMoon}
+
+El entorno experimental utilizado en este trabajo es el clúster HPMoon, donde se ejecutaron las campañas de caracterización energética de la CPU. Los conceptos generales sobre computación de altas prestaciones, clústeres y gestión de trabajos se presentan en el capítulo~\ref{chap:antecedentes}; este capítulo se centra en los recursos, mecanismos de medida y restricciones concretas del entorno utilizado.
+
+El nodo \texttt{compute-0-4} dispone de dos procesadores Intel Xeon Silver 4214 a 2,20~GHz. Cada procesador integra 12 núcleos físicos y admite dos hilos lógicos por núcleo, por lo que el nodo cuenta con 24 núcleos físicos y 48 CPU lógicas visibles para el sistema operativo. La memoria se organiza en dos dominios NUMA.
+
+La configuración concreta utilizada durante la campaña final, incluidos los programas de prueba, los perfiles de ejecución y el número de repeticiones, se describe en el capítulo~\ref{chap:diseno-experimental}. La arquitectura de la plataforma desarrollada sobre este entorno se presenta en el capítulo~\ref{chap:implementacion}
+
+HPMoon es una infraestructura compartida y gestionada mediante un planificador de trabajos. El acceso a los nodos de cómputo, la asignación de recursos, el tiempo de ejecución y las rutas disponibles están condicionados por la configuración y las políticas del clúster. Estas restricciones delimitan el entorno en el que debe funcionar la plataforma desarrollada.
+
+\section{Gestión de trabajos en HPMoon}
+\label{sec:slurm-entorno}
+
+HPMoon utiliza SLURM (\textit{Simple Linux Utility for Resource Management}) como sistema de gestión de trabajos y recursos \parencite{schedmdSlurmQuickstart}. Su uso constituyó una condición del entorno: las cargas no se ejecutan directamente en los nodos de cómputo, sino que deben enviarse al planificador junto con la solicitud de los recursos necesarios. SLURM decide cuándo puede comenzar cada trabajo y en qué nodo se ejecuta, de acuerdo con la disponibilidad de recursos y las políticas establecidas en el clúster.
+
+Cada solicitud permite especificar aspectos como el número de tareas, las CPU necesarias, la memoria, el tiempo máximo de ejecución y, cuando corresponde, el nodo en el que debe realizarse el trabajo. Una vez concedidos los recursos, las órdenes incluidas en el trabajo se ejecutan en el nodo asignado. Al finalizar, SLURM conserva información sobre su estado, duración, nodo de ejecución y código de salida.
+
+El sistema desarrollado debe integrarse con este modelo de funcionamiento para ejecutar las pruebas dentro de los recursos asignados. La generación, el envío y el seguimiento de los trabajos se describen en la Sección~\ref{sec:pipeline-implementacion}, mientras que los recursos utilizados en la campaña final se detallan en el Capítulo~\ref{chap:diseno-experimental}.
+
+\section{Organización NUMA del nodo de cómputo seleccionado}
+\label{sec:numa-entorno}
+
+El nodo \texttt{compute-0-4} presenta dos dominios NUMA, asociados a sus dos procesadores físicos. Esta organización distribuye la memoria del nodo entre ambos dominios. La ubicación de los procesos y de los datos puede influir en el tiempo de acceso a memoria.
+
+\section{Mecanismos de medida disponibles}
+\label{sec:medicion-entorno}
+
+Los procesadores del nodo permiten obtener medidas internas mediante Intel RAPL, cuyos contadores son accesibles desde Linux a través de la interfaz \emph{powercap} \parencite{linuxPowercap}. En \texttt{compute-0-4} se encuentran disponibles los dominios raíz \texttt{package-0} y \texttt{package-1}, asociados a sus dos procesadores físicos. Estos dominios proporcionan una estimación de la energía correspondiente al encapsulado de cada procesador y no representan el consumo eléctrico completo del nodo.
+
+HPMoon dispone también de medidores Vampire para obtener medidas externas del consumo eléctrico de sus nodos \parencite{diaz2024vampire}. El dispositivo \texttt{hpm4} está asociado a \texttt{compute-0-4} y registra un ámbito más amplio que los dominios RAPL. Por este motivo, ambas fuentes proporcionan información complementaria y sus valores no deben interpretarse como medidas equivalentes.
+
+La selección de los dominios RAPL y la integración de ambas fuentes dentro del flujo experimental se describen en la Sección~\ref{sec:adquisicion-implementacion} y en la Subsección~\ref{subsec:vampire-implementacion}.
+
+\section{Infraestructura auxiliar de monitorización}
+\label{sec:monitorizacion-entorno}
+
+El entorno experimental se complementa con un servicio remoto de monitorización accesible desde HPMoon mediante HTTPS. Su función es proporcionar información operativa sobre el desarrollo de las campañas y permitir consultar sus métricas de forma remota. Los datos utilizados como fuente principal del análisis permanecen almacenados en los ficheros asociados a cada ejecución.
+
+La arquitectura formada por Pushgateway, Prometheus, Grafana, HAProxy y el VPS, así como las decisiones que llevaron a su despliegue, se describen en la Sección~\ref{sec:monitorizacion-implementacion}.

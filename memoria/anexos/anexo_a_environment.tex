@@ -1,0 +1,21 @@
+\chapter{Entorno y requisitos de ejecución}
+\label{anexo:entorno}
+
+El sistema requiere Python 3, un compilador C, acceso a SLURM y permisos de lectura sobre la interfaz RAPL del nodo. Para utilizar la medición externa se requiere además acceso al cliente \texttt{vampire.py}, facilitado por la Universidad de Granada y no distribuido en el repositorio, y al servicio del que este obtiene las muestras. Los benchmarks se compilan mediante el \texttt{Makefile} del repositorio y las campañas se ejecutan desde el directorio raíz. La comprobación local, que no se comunica con el clúster ni con los servicios remotos, se realiza con la siguiente orden:
+
+\begin{lstlisting}[style=Consola]
+python3 -m unittest discover -s tests
+python3 scripts/validate_campaign_singlethread.py \
+  campaigns/hpc-tfg-main-campaign.json
+\end{lstlisting}
+
+La campaña se lanza con la siguiente orden:
+
+\begin{lstlisting}[style=Consola]
+python3 run_matrix.py \
+  --config campaigns/hpc-tfg-main-campaign.json
+\end{lstlisting}
+
+Las URL y posibles credenciales del sistema remoto se proporcionan mediante variables de entorno y no se almacenan en la memoria ni en los resultados publicados. La configuración permite comprobar localmente el procesamiento, las etiquetas y el payload sin realizar conexiones remotas.
+
+La campaña final se ejecutó en \texttt{compute-0-4}. La salida validada de \texttt{lscpu} indica dos Intel Xeon Silver 4214 a 2,20~GHz, 12 núcleos físicos por socket, dos hilos hardware por núcleo, 48 CPU lógicas en total y dos nodos NUMA. La campaña utiliza perfiles de hasta 12 CPU y un proceso monohilo por CPU solicitada.

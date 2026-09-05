@@ -1,0 +1,156 @@
+\chapter{Conclusiones y trabajos futuros}
+\label{chap:conclusiones}
+
+\section{Conclusiones}
+\label{sec:conclusiones}
+
+El objetivo de este Trabajo Fin de Grado ha sido diseñar, desarrollar y validar un sistema que permita estudiar el consumo energético asociado a la ejecución de cargas de trabajo sobre un clúster de computadores. El resultado obtenido va más allá de la adquisición puntual de medidas energéticas: se ha construido una infraestructura experimental capaz de coordinar un conjunto de ejecuciones bajo diferentes configuraciones, la ejecución de trabajos mediante SLURM, la adquisición de medidas de energía con medidores internos y externos, el almacenamiento de los resultados y su posterior análisis.
+
+Este trabajo ha permitido transformar una configuración experimental en un conjunto de ejecuciones identificadas y trazables. Cada prueba conserva no solo sus medidas finales, sino también las muestras originales, los parámetros utilizados, los metadatos de cada ejecución y la información necesaria para relacionar los distintos parámetros del experimento. De este modo, los resultados pueden revisarse y recalcularse posteriormente sin depender de una visualización en tiempo real o de un único fichero agregado.
+
+La validación del sistema se ha realizado mediante 61 ejecuciones válidas sobre el nodo \texttt{compute-0-4} de un clúster de computadores. Para ello, se han utilizado tres tipos de cargas: un programa Idle como referencia basal, un conjunto de programas de prueba orientados poner a prueba el ancho de banda de la memoria, utilizando STREAM y un programa de cálculo intensivo, con el benchmark DGEMM. Para las dos cargas activas se estudiaron perfiles con 1, 2, 4, 6, 8 y 12 procesos, realizando cinco repeticiones por configuración y manteniendo una duración objetivo de 120~s.
+
+Los resultados obtenidos muestran que el sistema es capaz de distinguir comportamientos energéticos diferentes en función del tipo de carga y de los recursos utilizados. Idle presenta, como era esperable, los niveles de potencia más bajos, mientras que STREAM y DGEMM incrementan el consumo energético al aumentar el número de procesos. Sin embargo, este incremento no se traduce de la misma manera en rendimiento para ambas cargas.
+
+En STREAM, el mayor rendimiento medio se alcanza con cuatro procesos y la incorporación de recursos adicionales no produce una mejora proporcional. Esto provoca que, a partir de determinados perfiles, el consumo continúe aumentando sin que exista un incremento equivalente del trabajo realizado. DGEMM presenta un comportamiento diferente, ya que el rendimiento continúa aumentando hasta doce procesos y la relación entre el trabajo realizado y la energía consumida evoluciona de forma más favorable.
+
+Este comportamiento pone de manifiesto una de las ideas principales del trabajo: \textbf{utilizar más recursos de cómputo no implica necesariamente obtener una mejora proporcional del rendimiento ni de la eficiencia energética}. La configuración más adecuada depende principalmente del tipo de carga y del objetivo perseguido. Analizar conjuntamente el rendimiento y el consumo permite identificar configuraciones en las que aumentar los recursos aporta poca mejora de rendimiento, pero sí incrementa el consumo energético.
+
+La estabilidad de las medidas se ha evaluado realizando cinco repeticiones  para cada configuración activa. La dispersión observada es reducida en comparación con las diferencias existentes entre perfiles. El coeficiente de variación máximo de la energía fue del 0,65~\% para las medidas obtenidas con RAPL y del 1,04~\% para los datos obtenidos con Vampire. El coeficiente de variación del rendimiento de STREAM es inferior al 0,55~\%, mientras que el DGEMM es del orden del 5,43~\%, para cuatro procesos. La baja dispersión observada entre repeticiones de una misma configuración indica que el procedimiento produce resultados estables bajo condiciones equivalentes, lo que respalda su repetibilidad dentro del entorno estudiado.
+
+La utilización de dos medidores, Intel RAPL y Vampire, aporta diferente información sobre el comportamiento energético del sistema. RAPL proporciona información correspondiente a determinados componentes del procesador (\texttt{package}), mientras que Vampire registra el consumo eléctrico global del nodo completo. 
+
+Por tanto, la principal aportación experimental no consiste en determinar unos  valores de consumo, sino en desarrollar una infraestructura que permite medir el consumo energético de programas de prueba con diferentes configuraciones de forma automatizada, trazable y repetible, obteniendo información suficientemente estable para estudiar diferencias entre cargas y configuraciones.
+
+En un contexto en el que las necesidades de cómputo continúan aumentando, el rendimiento no puede analizarse de forma completamente independiente del consumo energético necesario para obtenerlo. El sistema desarrollado no reduce por sí mismo el consumo del clúster, pero permite cuantificar la relación entre los recursos utilizados, el rendimiento obtenido y la energía consumida. Esta información constituye una base para identificar configuraciones poco eficientes y, en futuros trabajos, plantear estrategias de utilización y asignación de recursos que tengan en cuenta tanto el rendimiento como el consumo energético.
+
+\section{Cumplimiento de los objetivos}
+\label{sec:objetivos-cumplimiento}
+
+Los objetivos planteados al inicio del trabajo se consideran alcanzados dentro del alcance experimental definido. El objetivo general, consistente en diseñar, implementar y validar un sistema para medir y analizar el consumo energético asociado a las CPU del clúster HPMoon durante la ejecución de cargas controladas, se ha materializado en una infraestructura funcional y validada mediante una campaña experimental completa.
+
+La Tabla~\ref{tab:cumplimiento-objetivos} relaciona los principales objetivos específicos con los resultados alcanzados.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.16}
+
+\begin{longtable}{|p{0.27\textwidth}|p{0.535\textwidth}|p{0.12\textwidth}|}
+    \caption{Cumplimiento de los objetivos específicos del proyecto.}
+    \label{tab:cumplimiento-objetivos}\\
+    \hline
+    \textbf{Objetivo} & \textbf{Resultado alcanzado} & \textbf{Estado} \\
+    \hline
+    \endfirsthead
+
+    \multicolumn{3}{c}{\tablename\ \thetable{} (continuación)}\\
+    \hline
+    \textbf{Objetivo} & \textbf{Resultado alcanzado} & \textbf{Estado} \\
+    \hline
+    \endhead
+
+    Caracterizar el entorno de ejecución y los mecanismos de medida. &
+    Se estudiaron HPMoon, SLURM, la topología del nodo y las interfaces utilizadas para la medición mediante RAPL y Vampire. &
+    Cumplido \\
+    \hline
+
+    Definir una arquitectura modular para el sistema. &
+    La solución separa la configuración de campañas, la ejecución, la adquisición de medidas, el almacenamiento, la publicación y el análisis de resultados. &
+    Cumplido \\
+    \hline
+
+    Automatizar combinaciones de carga, recursos y repeticiones. &
+    La plataforma genera y ejecuta las distintas configuraciones experimentales a partir de la definición de cada campaña. &
+    Cumplido \\
+    \hline
+
+    Integrar la adquisición energética mediante Intel RAPL. &
+    Se realiza un muestreo periódico de los dominios \texttt{package}, conservando tanto las muestras como las métricas agregadas de cada ejecución. &
+    Cumplido \\
+    \hline
+
+    Integrar la medida externa mediante Vampire. &
+    La captura externa se coordina con la ejecución del programa de referencia y se comprueba que cubra correctamente la ventana temporal analizada. &
+    Cumplido \\
+    \hline
+
+    Mantener la trazabilidad de las ejecuciones. &
+    Cada ejecución conserva un identificador \texttt{run\_id} que permite relacionar configuración, muestras, resultados, estados y metadatos. &
+    Cumplido \\
+    \hline
+
+    Incorporar monitorización y visualización. &
+    Los agregados pueden publicarse mediante Pushgateway, recopilarse con Prometheus y visualizarse en Grafana, manteniendo los datos experimentales originales como fuente del análisis. &
+    Cumplido \\
+    \hline
+
+    Diseñar y ejecutar una campaña experimental. &
+    Se completó una campaña formada por 61 ejecuciones válidas con tres tipos de carga y seis perfiles de ejecución para las cargas activas. &
+    Cumplido \\
+    \hline
+
+    Desarrollar un procedimiento de análisis reproducible. &
+    Las métricas pueden recalcularse a partir de las muestras originales y se aplican controles de calidad antes de incorporar una ejecución al conjunto analizado. &
+    Cumplido \\
+    \hline
+
+\end{longtable}
+\endgroup
+
+\section{Aportaciones del trabajo}
+\label{sec:aportaciones}
+
+Una de las principales aportaciones del trabajo es la integración de componentes y tecnologías diferentes dentro de un único flujo experimental. La solución desarrollada coordina el gestor de trabajos del clúster, programas de referencia, medidores internos (Intel RAPL) y externos (Vampire), el almacenamiento de resultados y las herramientas de monitorización. Esta integración permite que una campaña completa pueda ejecutarse siguiendo un procedimiento homogéneo y reduciendo la intervención manual.
+
+Otra aportación relevante es la trazabilidad de los experimentos. Cada ejecución conserva su configuración, sus muestras de energía, los resultados del programa de referencia y los metadatos necesarios para conocer las condiciones en las que se realizó. La utilización de un identificador común permite relacionar las distintas fuentes de información y reconstruir posteriormente los resultados sin modificar los datos originales.
+
+El trabajo también aporta un procedimiento de validación que no se limita a comprobar que una ejecución haya finalizado correctamente. Antes de incorporar una prueba al conjunto de resultados se consideran aspectos como el estado del trabajo, la existencia de los ficheros esperados, la cobertura temporal de las medidas, el número de muestras y la coherencia de los valores obtenidos. La aplicación de estos controles permite detectar problemas durante las campañas preliminares, corregir el sistema y repetir las pruebas con una configuración adecuada en lugar de modificar retrospectivamente los datos obtenidos.
+
+Desde el punto de vista experimental, la infraestructura permite relacionar el consumo energético con el comportamiento de distintos tipos de carga. Los resultados obtenidos al ejecutar STREAM y DGEMM muestran que una misma ampliación de recursos puede tener efectos diferentes sobre el rendimiento y la eficiencia dependiendo del patrón de trabajo. Esta capacidad convierte la plataforma en una base útil para estudiar configuraciones de ejecución y no únicamente para registrar valores de potencia o energía.
+
+Además, el desarrollo combina conocimientos pertenecientes a distintas áreas de la Ingeniería Informática. El trabajo requiere abordar aspectos relacionados con sistemas operativos, administración de clústeres, arquitectura de computadores, programación, automatización, monitorización, tratamiento de datos y metodología experimental. La integración de estas áreas ha sido necesaria para obtener una solución funcional sobre una infraestructura real y no únicamente sobre un entorno de laboratorio controlado.
+
+Por último, la arquitectura desarrollada permite ampliar el sistema sin modificar su planteamiento fundamental. Nuevas cargas, perfiles de ejecución o nodos pueden incorporarse mediante nuevas campañas, mientras que los mecanismos de adquisición y almacenamiento pueden seguir utilizándose. Esta capacidad de extensión resulta especialmente relevante para continuar estudiando el compromiso entre rendimiento y consumo energético en HPMoon.
+
+\section{Limitaciones}
+\label{sec:limitaciones-conclusiones}
+
+Los resultados obtenidos deben interpretarse dentro del alcance de la campaña realizada. La evaluación se ha llevado a cabo sobre el nodo \texttt{compute-0-4} del clúster HPMOON, equipado con dos procesadores Intel Xeon Silver 4214. Por tanto, las tendencias observadas caracterizan esta configuración y no pueden extrapolarse directamente a otros tipos de nodos, procesadores, arquitecturas o clústeres.
+
+Las cargas utilizadas son sintéticas y representan tres situaciones concretas: baja actividad mediante Idle, presión sobre el subsistema de memoria mediante una carga basada en STREAM y cálculo intensivo con DGEMM. Aunque esta selección permite observar comportamientos diferenciados, no reproduce toda la variedad de aplicaciones que pueden ejecutarse en un entorno HPC.
+
+La campaña utiliza seis perfiles de ejecución para las cargas activas y no estudia de forma específica los efectos sobre una arquitectura NUMA, sisteas multihilo simultáneo (SMT), frecuencia del procesador o diferentes estrategias de afinidad. Además, aunque se solicita el número de procesos y recursos necesarios para cada ejecución, no se pudo verificar de forma exacta en qué núcleos físicos del nodo se ejecutó cada proceso.
+
+El programa Idle se ejecuta una única vez al utilizarse como referencia basal. En consecuencia, esta prueba permite disponer de un valor de referencia, pero no estudiar su variabilidad entre repeticiones al mismo nivel que STREAM y DGEMM.
+
+Otra limitación deriva del diseño temporal de las cargas. STREAM y DGEMM repiten sus operaciones durante una ventana de duración aproximadamente constante. Este planteamiento facilita la obtención de medidas energéticas estables, pero hace que cada configuración pueda completar una cantidad diferente de trabajo durante el mismo intervalo. Por este motivo, métricas como el producto energía--retardo no pueden interpretarse de la misma forma que en una campaña en la que todas las configuraciones resuelvan exactamente el mismo problema.
+
+Los dos medidores utilizados miden consumos diferentes. Intel RAPL proporciona información correspondiente a componentes del procesador (\texttt{package}) concretos, mientras que Vampire mide el consumo global del nodo. La diferencia entre ambas medidas no puede utilizarse para atribuir directamente el consumo a componentes concretos. Además, Vampire utiliza una frecuencia de muestreo de 5~s, frente al de 1~s utilizado por RAPL, por lo que los valores máximos obtenidos por ambas fuentes no son directamente comparables muestra a muestra.
+
+Finalmente, la coherencia observada entre las medidas y su repetibilidad no constituyen una calibración metrológica absoluta de los instrumentos. El trabajo valida el funcionamiento de la infraestructura y la consistencia de los resultados dentro de las condiciones estudiadas, pero una caracterización de precisión absoluta requeriría instrumentación y procedimientos específicos de calibración.
+
+\section{Trabajos futuros}
+\label{sec:trabajo-futuro}
+
+El sistema desarrollado constituye una base sobre la que pueden plantearse nuevas líneas de experimentación. Una primera ampliación consiste en aumentar la variedad de entornos evaluados. La ejecución de campañas equivalentes sobre otros nodos de HPMoon permitiría estudiar si las tendencias observadas se mantienen entre diferentes generaciones de procesadores y configuraciones hardware.
+
+También resulta de interés ampliar el conjunto de cargas utilizadas. La incorporación de aplicaciones científicas reales permitiría complementar los programas sintéticos y estudiar escenarios más próximos al uso habitual de un clúster HPC. Del mismo modo, aumentar el número de repeticiones de Idle permitiría caracterizar con mayor precisión el consumo basal del nodo.
+
+Otra línea de trabajo consiste en modificar el planteamiento temporal de los programas de referencia. Una campaña en la que todas las configuraciones deban completar una cantidad fija de trabajo permitiría estudiar directamente el tiempo necesario para resolver el mismo problema y analizar métricas como el \emph{speedup}, la energía total o el producto energía--retardo. Este enfoque complementaría la campaña de duración controlada utilizada en este trabajo.
+
+El estudio de la CPU puede ampliarse introduciendo de forma controlada nuevas variables experimentales. Entre ellas se encuentran el uso de SMT, diferentes distribuciones NUMA, políticas de frecuencia o límites de potencia. La incorporación de contadores hardware mediante herramientas como \texttt{perf} permitiría además relacionar el consumo energético con variables como el número de instrucciones ejecutadas, los ciclos de procesador o determinados eventos de memoria y caché.
+
+En relación con la medición energética, una futura ampliación podría caracterizar con mayor detalle la relación entre los dominios observados mediante RAPL y el consumo global registrado por Vampire. También sería de interés analizar de forma específica el consumo basal del nodo y estudiar cómo cambia la proporción entre ambas medidas para distintos tipos de carga. Si se dispusiera de instrumentación de referencia adecuada, podría realizarse además una calibración independiente de la cadena de medida.
+
+Desde el punto de vista del software, el sistema puede evolucionar incorporando nuevos mecanismos de automatización. Entre las posibles mejoras se encuentran el registro automático de la asignación efectiva de CPU, la agregación directa del trabajo producido por todos los procesos, la detección automática de ejecuciones anómalas y la generación de informes comparativos entre campañas.
+
+La acumulación de resultados a lo largo de múltiples campañas permitiría dar un paso adicional. En lugar de limitarse a describir el comportamiento energético de una configuración, los datos podrían utilizarse para identificar qué cantidad de recursos resulta más adecuada para una determinada clase de carga. Por ejemplo, sería posible detectar situaciones en las que aumentar el número de procesos incrementa el consumo sin producir una mejora significativa del rendimiento.
+
+A partir de esta información podría desarrollarse una capa de recomendación capaz de seleccionar configuraciones en función de diferentes objetivos, como minimizar la energía consumida, limitar la potencia utilizada o alcanzar un determinado nivel de rendimiento. De esta manera, la infraestructura evolucionaría desde un sistema de medida y análisis hacia una herramienta de apoyo a la toma de decisiones.
+
+A más largo plazo, este enfoque podría extenderse al propio planificador del clúster. La información obtenida sobre rendimiento y consumo podría servir como base para estudiar estrategias de planificación conscientes de la energía, en las que la asignación de recursos no dependiera únicamente de su disponibilidad, sino también del coste energético asociado a las distintas configuraciones.
+
+También podría explorarse la utilización de técnicas estadísticas o modelos predictivos capaces de estimar el consumo esperado de una ejecución a partir de sus características y de los recursos asignados. Estas líneas requerirían campañas experimentales más amplias, pero representan una evolución natural de la infraestructura construida en este trabajo.
+
+En todos estos casos, el punto de partida continúa siendo el mismo: disponer de datos energéticos fiables, contextualizados y reproducibles. Sin una infraestructura que permita medir de forma consistente, cualquier estrategia posterior de optimización o recomendación carecería de una base experimental adecuada.

@@ -1,0 +1,1006 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "tfg-hpc-scaling-v2-vampire",
+    "namespace": "default",
+    "annotations": {
+      "grafana.app/folderTitle": "TFG",
+      "tfg-energy-lab/template": "true",
+      "tfg-energy-lab/source": "adapted-from-exported-dashboard"
+    }
+  },
+  "spec": {
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "query": {
+            "kind": "DataQuery",
+            "group": "grafana",
+            "version": "v0",
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "spec": {}
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "builtIn": true,
+          "legacyOptions": {
+            "type": "dashboard"
+          }
+        }
+      }
+    ],
+    "cursorSync": "Crosshair",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "id": 1,
+          "title": "Throughput by Cores",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node) (tfg_run_ops_per_second{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"})",
+                        "legendFormat": "{{benchmark}} | {{language}} | {{cores}} cores | {{node}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "color": {
+                    "mode": "palette-classic"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "id": 2,
+          "title": "Average Power by Cores (RAPL / Vampire)",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node) (tfg_run_avg_power_watts{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"})",
+                        "legendFormat": "{{benchmark}} | {{language}} | {{cores}} cores | {{node}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node, vampire_device) (tfg_external_average_power_watts{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\",vampire_device=~\"$vampire_device\"})",
+                        "legendFormat": "Vampire | {{benchmark}} | {{language}} | {{cores}} cores | {{node}} | {{vampire_device}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "watt",
+                  "color": {
+                    "mode": "palette-classic"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Energy by Cores (RAPL / Vampire)",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node) (tfg_run_energy_joules{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"})",
+                        "legendFormat": "{{benchmark}} | {{language}} | {{cores}} cores | {{node}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node, vampire_device) (tfg_external_energy_joules{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\",vampire_device=~\"$vampire_device\"})",
+                        "legendFormat": "Vampire | {{benchmark}} | {{language}} | {{cores}} cores | {{node}} | {{vampire_device}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "joule",
+                  "color": {
+                    "mode": "palette-classic"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "id": 4,
+          "title": "Efficiency by Cores (RAPL / Vampire)",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node) (tfg_run_ops_per_joule{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"})",
+                        "legendFormat": "{{benchmark}} | {{language}} | {{cores}} cores | {{node}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node, vampire_device) (tfg_run_ops_total{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"} / on(run_id) group_right(vampire_device) tfg_external_energy_joules{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\",vampire_device=~\"$vampire_device\"})",
+                        "legendFormat": "External Ops/J | {{benchmark}} | {{language}} | {{cores}} cores | {{node}} | {{vampire_device}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "color": {
+                    "mode": "palette-classic"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "id": 5,
+          "title": "Efficiency Ranking Table (RAPL / Vampire)",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (benchmark, language, threads, node) (tfg_run_ops_per_joule{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"})",
+                        "format": "time_series",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (benchmark, language, cores, node, vampire_device) (tfg_run_ops_total{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"} / on(run_id) group_right(vampire_device) tfg_external_energy_joules{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\",vampire_device=~\"$vampire_device\"})",
+                        "format": "time_series",
+                        "range": true,
+                        "legendFormat": "External Ops/J"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "reduce",
+                  "spec": {
+                    "options": {
+                      "includeTimeField": false,
+                      "labelsToFields": true,
+                      "mode": "seriesToRows",
+                      "reducers": [
+                        "last"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Field": true
+                      },
+                      "renameByName": {
+                        "Last": "Ops/J",
+                        "benchmark": "Benchmark",
+                        "language": "Language",
+                        "node": "Node",
+                        "threads": "Cores"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "none",
+                  "color": {
+                    "mode": "thresholds"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "id": 6,
+          "title": "Duration by Cores (Benchmark / Vampire Capture)",
+          "description": "Run duration for each core configuration.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node) (tfg_run_duration_seconds{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\"})",
+                        "legendFormat": "{{benchmark}} | {{language}} | {{cores}} cores | {{node}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "max by (cores, benchmark, language, node, vampire_device) (tfg_external_duration_seconds{campaign=\"$campaign\",benchmark=~\"$benchmark\",language=~\"$language\",threads=~\"$threads\",node=~\"$node\",profile=~\"$profile\",cores=~\"$cores\",run_id=~\"$run_id\",vampire_device=~\"$vampire_device\"})",
+                        "legendFormat": "Vampire duration | {{benchmark}} | {{language}} | {{cores}} cores | {{node}} | {{vampire_device}}",
+                        "range": true
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "s",
+                  "color": {
+                    "mode": "palette-classic"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "GridLayout",
+      "spec": {
+        "items": [
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-1"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-2"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 10,
+              "width": 12,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 10,
+              "width": 12,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-4"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 20,
+              "width": 12,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-5"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 20,
+              "width": 12,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-6"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "tfg",
+      "energy",
+      "rapl",
+      "hpc",
+      "vampire",
+      "integrated"
+    ],
+    "timeSettings": {
+      "timezone": "browser",
+      "from": "now-30d",
+      "to": "now",
+      "autoRefresh": "5s",
+      "autoRefreshIntervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "hideTimepicker": false,
+      "fiscalYearStartMonth": 0
+    },
+    "title": "TFG - HPC Scaling & Efficiency (RAPL + Vampire)",
+    "variables": [
+      {
+        "kind": "DatasourceVariable",
+        "spec": {
+          "name": "DS_PROMETHEUS",
+          "pluginId": "prometheus",
+          "refresh": "onDashboardLoad",
+          "regex": "",
+          "current": {
+            "text": "Prometheus",
+            "value": "Prometheus"
+          },
+          "options": [],
+          "multi": false,
+          "includeAll": false,
+          "label": "Prometheus",
+          "hide": "dontHide",
+          "skipUrlSync": false,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "campaign",
+          "current": {
+            "text": "hpc_cpu_mem_v1",
+            "value": "hpc_cpu_mem_v1"
+          },
+          "label": "campaign",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status, campaign)",
+              "refId": "Prometheus-campaign"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status, campaign)",
+          "options": [],
+          "multi": false,
+          "includeAll": false,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "benchmark",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "benchmark",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\"}, benchmark)",
+              "refId": "Prometheus-benchmark"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\"}, benchmark)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "language",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "language",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\"}, language)",
+              "refId": "Prometheus-language"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\"}, language)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "threads",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Cores",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, threads)",
+              "refId": "Prometheus-threads"
+            }
+          },
+          "regex": "",
+          "sort": "numericalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, threads)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "node",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "node",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, node)",
+              "refId": "Prometheus-node"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, node)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "profile",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "profile",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, profile)",
+              "refId": "Prometheus-profile"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, profile)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "cores",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "cores",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, cores)",
+              "refId": "Prometheus-cores"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, cores)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "vampire_device",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "vampire device",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_external_capture_success{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, vampire_device)",
+              "refId": "Prometheus-vampire_device"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_external_capture_success{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, vampire_device)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "run_id",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "run_id",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, run_id)",
+              "refId": "Prometheus-run_id"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=\"$campaign\",benchmark=~\"$benchmark\"}, run_id)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+\chapter{Panel de visualización y monitorización}
+\label{anexo:dashboards}
+
+Los paneles de visualización utilizados en la campaña final se almacenan como JSON en \path{deploy/monitoring/grafana/dashboards}. Las versiones integradas con las métricas externas se encuentran en el subdirectorio \path{integrated-current}.
+
+Los paneles de visualización actuales tienen tres funciones: monitorización en tiempo real, resumen de una ejecución identificada por \texttt{run\_id} y análisis de escalabilidad entre configuraciones. Además se dispone de paneles específicos para visualizar conjuntamente las métricas obtenidas mediante RAPL y Vampire, así como para revisar la calidad de las ejecuciones, incluyendo la detección de capturas externas fallidas y la consulta de los resultados asociados a cada \texttt{run\_id}.
+
+Los resultados no solo se pueden visualizar, sino que los paneles también permiten supervisar y consultar datos, aunque el análisis reproducible se hace a partir de los datos de los ficheros CSV y JSON asociados a las ejecuciones. Esta separación evita que una variable, un rango temporal o una transformación de Grafana modifique la interpretación de los resultados.
+
+Para utilizar los paneles desarrollados en Grafana, estos pueden importarse a partir de los archivos JSON incluidos en el proyecto mediante la opción \emph{Dashboards $\rightarrow$ New $\rightarrow$ Import}. Una vez importado el panel, debe configurarse como fuente de datos la instancia de Prometheus encargada de recopilar las métricas publicadas en Pushgateway.
+
+Los paneles incorporan variables que permiten filtrar la información mostrada según el conjunto de pruebas o campaña, el programa de referencia, el perfil de ejecución y el identificador \texttt{run\_id}. De esta forma es posible localizar una ejecución específica o comparar varias configuraciones dentro de una misma campaña. Adicionalmente, el dispositivo Vampire puede utilizarse como criterio de filtrado para los paneles que incluyen las medidas externas.
+
+
+Los paneles de monitorización desarrollados para el proyecto pueden consultarse en:
+
+\begin{center}
+   \url{https://tfg-energy-lab.vasr.es/grafana}
+\end{center}
+
+Para facilitar la evaluación se ha habilitado un usuario temporal con permisos de solo lectura. Las credenciales de acceso se proporcionan a los tutores y al tribunal mediante un canal separado y no se incluyen en esta memoria.
+
+\section{Implementación reproducible}
+
+Con el objetivo de facilitar la reproducción del entorno de monitorización, la configuración necesaria para desplegar los distintos servicios que lo componen se conserva junto con el proyecto. Para ello se utiliza Docker, una plataforma que permite ejecutar aplicaciones dentro de contenedores aislados, junto con Docker Compose, que permite definir y coordinar varios servicios en distintos contenedores desde un único fichero de configuración.
+
+En este trabajo, la infraestructura de monitorización está formada principalmente por tres servicios: Pushgateway, Prometheus y Grafana. Pushgateway es el servicio encargado de recibir los resultados durante las ejecuciones experimentales, Prometheus los recopila y almacena, y Grafana consulta posteriormente esos datos para representarlos mediante paneles de visualización. Esta separación permite que cada componente tenga una función concreta dentro del flujo de monitorización.
+
+Los ficheros necesarios para desplegar estos servicios se encuentran en \path{deploy/monitoring}. El archivo \path{docker-compose.yml} define los contenedores que deben ejecutarse y la relación entre ellos. Por otra parte el archivo de configuración de Prometheus, para que este consulte los resultados publicados por Pushgateway, se encuentra en \path{prometheus/prometheus.yml}, mientras que el archivo \path{grafana/provisioning/datasources/prometheus.yml} configura Prometheus como fuente de datos de Grafana.
+
+Los datos generados por estos servicios, como las series temporales almacenadas por Prometheus o la información interna de Grafana, se conservan en directorios persistentes del servidor. Estos datos no forman parte del repositorio, ya que dependen de cada despliegue y pueden generarse nuevamente al poner en funcionamiento la infraestructura.
+
+El acceso externo a los servicios se gestiona mediante HAProxy. Este componente actúa como punto de entrada a la infraestructura y se encarga de dirigir cada petición hacia el servicio correspondiente. Su configuración se encuentra en \path{deploy/monitoring/haproxy}. En este despliegue, HAProxy permite acceder a Grafana, Prometheus y Pushgateway mediante rutas diferenciadas, como \texttt{/grafana}, \texttt{/prometheus} y \texttt{/pushgateway}, y redirige las conexiones HTTP hacia HTTPS.
+
+La comunicación entre HAProxy y los distintos servicios se realiza a través de la red interna de los contenedores de Docker. De esta forma, los servicios pueden comunicarse entre sí mediante los nombres definidos en la configuración sin necesidad de exponer directamente todos sus puertos internos.
+
+Por motivos de seguridad y portabilidad, el repositorio conserva únicamente la configuración necesaria para reconstruir la infraestructura. Los certificados digitales, las credenciales y el estado de herramientas como Certbot no se incluyen, ya que contienen información específica del servidor y deben configurarse de forma independiente en cada despliegue.

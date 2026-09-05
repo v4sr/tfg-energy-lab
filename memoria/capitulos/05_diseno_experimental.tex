@@ -1,0 +1,169 @@
+\chapter{Diseño experimental}
+\label{chap:diseno-experimental}
+
+\section{Benchmarks seleccionados}
+\label{sec:benchmarks-diseno-experimental}
+
+El diseño experimental se basa en la ejecución controlada de tres programas de pruebas representativos de distintos patrones de uso de recursos en un entorno de computación de altas prestaciones. La selección de estos tres programas (Idle, STREAM y DGEMM) responde a la necesidad de caracterizar el comportamiento energético de la CPU en las siguientes situaciones: Ausencia de carga computacional intensiva (Idle), presión sobre el subsistema de memoria (STREAM) y cálculo numérico intensivo (DGEMM). Esta combinación permite estudiar la respuesta energética del sistema sin limitar el análisis a un único tipo de aplicación.
+
+Idle se emplea como una línea base de experimentación. El objetivo de esta prueba no es evaluar el rendimiento en sí mismo, sino observar el consumo energético asociado a un intervalo de tiempo en el que no se ejecuta una carga de trabajo intensiva definida por el grupo de pruebas. Este escenario es importante ya que un nodo de cómputo tiene un consumo energético base en estado de pausa o inactividad. El sistema operativo, los servicios de monitorización, las interrupciones, la gestión de energía y otros procesos en segundo plano se mantienen activos. Por tanto, la prueba Idle proporciona un punto de referencia para contextualizar el consumo observado en ejecuciones activas.
+
+STREAM es un programa de prueba orientado a hacer un uso intensivo de la memoria, tomando como referencia el patrón de acceso descrito por McCalpin \parencite{mccalpin1995}. De entre las operaciones que define, se encuentra \emph{Triad}, cuya operación elemental puede expresarse como \(A[i] =  B[i] + q \cdot C[i]\), donde \(q\) es una constante escalar. En esta expresión, \(A\), \(B\) y \(C\) son los tres vectores utilizados en la operación, mientras que \(i\) indica la posición del elemento procesado. El programa propio, denominado \texttt{memory-stream-hpc}, repite esta operación sobre tres vectores de 50 millones de valores de doble precisión. Cada iteración implica dos lecturas y una escritura (1. Lectura en \(B[i]\), 2. Lectura en \(C[i]\) y 3. Escritura en \(A[i]\)), además de una multiplicación y una suma. Puesto que los valores son de doble precisión (tipo \texttt{double}), cada elemento procesado equivaldría a 24 bytes. En el programa de ejecución planteado para las mediciones, cada proceso envía sus resultados a un archivo JSON. 
+No se asegura que los resultados obtenidos con \texttt{memory-stream-hpc} sean directamente equivalentes a los que proporcionaría una implementación oficial de STREAM, ya que se trata de un programa propio basado únicamente en uno de sus patrones de acceso a memoria; su función como programa de prueba es proporcionar un patrón de tráfico de memoria estable para las mediciones.
+
+DGEMM (\textit{Double Precision General Matrix Multiplication}) es una rutina estándar de álgebra lineal para realizar multiplicaciones de matrices de doble precisión, normalmente formuladas como \(C = \alpha AB + \beta C\) \parencite{netlibDgemm}. En esta expresión, \(A\) y \(B\) son las matrices de entrada, \(C\) es la matriz que almacena el resultado, y \(\alpha\) y \(\beta\) son constantes escalares que determinan el peso de la multiplicación \(AB\) y del valor previo de \(C\), respectivamente. En este trabajo se toma esta operación como referencia para construir una carga orientada a cálculo intensivo con el programa \texttt{compute-dgemm-hpc}. Este programa realiza de forma repetida multiplicaciones matriciales de doble precisión, con el objetivo de mantener ocupadas las unidades de cálculo del procesador y analizar cómo evolucionan el rendimiento computacional, la potencia y la energía consumida al variar el número de núcleos asignados.
+Para cuantificar el trabajo realizado. cada multiplicación completa de matrices de orden \(N\) se contabiliza como \(2N^3\) operaciones. El rendimiento agregado se calcula considerando las operaciones realizadas por todos los procesos y la mayor duración registrada entre ellos, como se especifica en la Sección~\ref{sec:variables-diseno-experimental}.
+
+Durante la selección de programas de prueba se priorizaron aquellas cargas cuya duración pudiera controlarse y que proporcionaran una salida estructurada, frente a programas basados en la resolución de un problema fijo de corta duración. Las pruebas iniciales mostraron que las ejecuciones breves generaban un número de muestras reducido y otorgaban un peso relativo a las fases de preparación y finalización de la ejecución. Por este motivo, se eligieron las cargas basadas en STREAM y DGEMM, que repiten sus operaciones correspondientes hasta superar una ventana temporal objetivo y registran los resultados y el tiempo de ejecución en formato JSON. Esta decisión permite obtener intervalos de medida más estables y un número suficiente de muestras de energía. Como contrapartida, para estudiar específicamente la relación entre energía consumida y tiempo de respuesta mediante EDP sería necesaria una campaña adicional en la que todas las configuraciones resolvieran exactamente la misma cantidad de trabajo.
+
+La figura~\ref{fig:benchmarks-seleccionados} resume el objetivo de cada programa de referencia.
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c@{\hspace{0.35cm}}c@{\hspace{0.35cm}}c}
+\diagramnodeaccent[0.27\textwidth]{IDLE\\\normalfont Referencia base sin carga intensiva}&
+\diagramnodeaccent[0.27\textwidth]{STREAM\\\normalfont Tráfico de memoria\\operación \emph{triad}} &
+\diagramnodeaccent[0.27\textwidth]{DGEMM\\\normalfont Cálculo numérico en coma flotante}\end{tabular}
+\caption{Clasificación conceptual de los programas de pruebas utilizados.}
+\label{fig:benchmarks-seleccionados}
+\end{figure}
+
+La figura \ref{fig:benchmarks-seleccionados} permite situar cada programa de referencia dentro del diseño experimental. Esta separación es importante porque las medidas energéticas no deben interpretarse de forma aislada. Una misma magnitud, como la potencia media, puede estar asociada a comportamientos internos distintos dependiendo de si la carga está limitada por memoria, por capacidad de cálculo o por la actividad base del sistema.
+
+\section{Variables de estudio}
+\label{sec:variables-diseno-experimental}
+
+Las variables de estudio se dividen en variables de configuración y valores medidos observados. Las primeras determinan cómo se ejecuta cada experimento; las segundas describen el comportamiento medido durante la ejecución. Esta separación permite definir lotes de pruebas de manera sistemática y relacionar cada resultado con las condiciones que lo produjeron.
+
+La variable independiente principal, p,  es el número de procesos solicitados. Los perfiles \texttt{p1}, \texttt{p2}, \texttt{p4}, \texttt{p6}, \texttt{p8} y \texttt{p12} lanzan 1, 2, 4, 6, 8 y 12 procesos, respectivamente. Cada proceso ejecuta una instancia monohilo del programa de referencia. Por tanto, el grado de paralelismo global no procede de hilos internos compartiendo una instancia, sino de procesos concurrentes con un núcleo físico solicitado por tarea.
+
+La campaña solicita una reserva exclusiva del nodo y utiliza la orden \texttt{srun -n P -c 1 --cpu-bind=cores}. La opción \texttt{-n P} establece el número de procesos, mientras que \texttt{-c 1} solicita una CPU por proceso y \texttt{--cpu-bind=cores} intenta fijar cada proceso a un núcleo. El uso de procesos monohilo pretende evitar que el incremento del perfil se confunda con la creación de varios hilos dentro de un mismo proceso. Sin embargo, durante las ejecuciones se observó que la configuración de HPMoon no admite la opción de fijación solicitada. Por este motivo, se controla el número de procesos y de CPU solicitadas, pero la afinidad física exacta no se considera una variable verificada.
+
+La campaña se centra en variar el número de procesos y núcleos asignados. No se analizan de forma independiente otros factores de la arquitectura, como la distribución entre dominios NUMA, el procesador físico utilizado o las distintas estrategias de afinidad.
+
+La duración de la ejecución permite controlar el intervalo de tiempo en el que se está midiendo. Una duración demasiado breve puede hacer que los costes de las fases de inicialización o finalización del programa tengan un peso elevado en la medición. Una duración excesiva puede aumentar innecesariamente el tiempo total de campaña. Por ello, la duración se trata como un parámetro experimental que debe quedar registrado junto con los resultados.
+
+La duración de la campaña final fijó en 120~s y el intervalo de consulta a los registros RAPL de 1~s. De esta forma se dispone de un centenar de valores energéticos por ejecución, suficientes para calcular la potencia máxima y comprobar la regularidad de la serie. Por otro lado, el medidor externo Vampire toma muestras cada 5~s con lo que no se pueden comparar directamente los picos muestra a muestra.
+
+El número de repeticiones se introduce para observar la variabilidad entre ejecuciones equivalentes. En sistemas reales pueden aparecer diferencias debidas al estado térmico del procesador, a la política de frecuencias, a la actividad de fondo o a la asignación efectiva de recursos. Repetir una configuración no elimina estas fuentes de variación, pero permite disponer de una base más amplia y adecuada para análisis posteriores.
+
+Las métricas obtenidas en cada ejecución incluyen la energía consumida, la potencia media, la potencia máxima, la duración de la prueba, el número de muestras recogidas y el rendimiento proporcionado por el programa de referencia. RAPL no da directamente el valor de la energía consumida en cada intervalo, sino un contador acumulado. Por este motivo, para conocer la energía correspondiente a una muestra se calcula la diferencia entre dos lecturas consecutivas:
+
+\begin{equation}
+\Delta E_i = \frac{E_i-E_{i-1}}{10^6},
+\label{eq:incremento-energia-rapl}
+\end{equation}
+donde \(E_i\) y \(E_{i-1}\) representan dos lecturas consecutivas del contador RAPL, cuyos valores se expresan en microjulios. La división entre \(10^6\) convierte la diferencia obtenida a julios. Adicionalmente, el cálculo tiene en cuenta un posible reinicio del contador tras alcanzar su valor máximo, para no interpretar incorrectamente la diferencia.
+
+La potencia media correspondiente al intervalo \(i\), representada mediante \(P_i\), se obtiene a partir del incremento energético \(\Delta E_i\) y del tiempo transcurrido entre las dos lecturas, \(\Delta t_i\):
+\begin{equation}
+P_i = \frac{\Delta E_i}{\Delta t_i}.
+\label{eq:potencia-intervalo-rapl}
+\end{equation}
+
+La energía total de la ejecución se calcula sumando la energía de todos los intervalos. La potencia media se obtiene a partir de las potencias calculadas para cada muestra, y la potencia máxima corresponde al mayor valor registrado durante la ejecución.
+
+Por último, el rendimiento global de los programas de prueba se calcula considerando conjuntamente el trabajo realizado por todos los procesos. Para ello se suman los bytes procesados, en el caso de la carga de memoria (\emph{STREAM}), o las operaciones realizadas en el caso de la carga de cálculo (\emph{DGEMM}), y se divide este valor por la mayor duración registrada entre los procesos de la ejecución. De esta manera, se obtiene una medida representativa del rendimiento conjunto, en lugar de utilizar únicamente el resultado del último proceso registrado. 
+
+En cuanto a la medición externa, cada ejecución almacena también el valor medido por el dispositivo Vampire asociado al nodo, el estado de la captura, el intervalo temporal registrado, el número de muestras y las medidas eléctricas obtenidas. Tanto las medidas de RAPL como las de Vampire se identifican mediante el mismo identificador, \texttt{run\_id}, lo que permite relacionar los datos correspondientes a una misma ejecución sin modificar las muestras originales. Dado que ambas herramientas miden partes diferentes del sistema, su análisis conjunto requiere comprobar que los intervalos temporales sean compatibles y tener en cuenta qué componentes quedan incluidos en cada medida. Por este motivo, los resultados de Vampire se utilizan para analizar qué proporción del consumo global del nodo representa la energía registrada mediante RAPL en las distintas ejecuciones.
+
+\section{Preguntas y expectativas de evaluación}
+\label{sec:preguntas-evaluacion}
+
+La campaña experimental se plantea para responder a varias preguntas relacionadas con el funcionamiento del sistema de medida. Estas preguntas no constituyen hipótesis estadísticas que requieren pruebas inferenciales, sino criterios de evaluación que orientan la comparación descriptiva de las ejecuciones:
+
+\begin{enumerate}
+    \item ¿Permite el sistema distinguir el comportamiento energético y de rendimiento de cargas con características diferentes?
+    \item ¿Se detectan cambios en el rendimiento, la potencia y la energía al aumentar el número de procesos asignados?
+    \item ¿Las repeticiones realizadas bajo una misma configuración producen resultados suficientemente estables para efectuar comparaciones?
+    \item ¿Las medidas internas y externas responden de manera coherente a los cambios de carga, teniendo en cuenta que observan dominios energéticos diferentes?
+    \item ¿Los datos almacenados permiten identificar ejecuciones incompletas, reconstruir sus condiciones y recalcular las métricas analizadas?
+\end{enumerate}
+
+Se espera que las cargas activas presenten un comportamiento diferente de la referencia Idle y que STREAM y DGEMM respondan de forma distinta al incremento de recursos debido al diferente tipo de actividad que generan. También se espera que el aumento del número de procesos produzca cambios medibles en el rendimiento y en las magnitudes energéticas, aunque dichos cambios no tienen por qué ser proporcionales ni conducir a una misma configuración eficiente para todas las cargas.
+
+Las repeticiones de una misma configuración deberían presentar una dispersión reducida si el procedimiento mantiene controladas las principales condiciones experimentales. Por otra parte, RAPL y Vampire deberían responder a los cambios de actividad, pero no se espera que proporcionen valores absolutos equivalentes, ya que miden dominios diferentes. Estas expectativas se contrastan mediante la validación funcional, el análisis descriptivo y la comparación de configuraciones desarrollados en el Capítulo~\ref{chap:validacion-experimental}.
+
+\section{Campañas experimentales}
+\label{sec:campanas-diseno-experimental}
+
+El diseño y la automatización de las campañas se describen en la Sección~\ref{sec:pipeline-implementacion}. En este apartado se presenta la configuración concreta de la campaña utilizada para obtener los resultados experimentales.
+
+La campaña principal utilizada para obtener los resultados analizados en este trabajo, \texttt{hpc\_tfg\_main\_campaign}, se ejecutó sobre el nodo de HPMoon \texttt{compute-0-4}, asociado al dispositivo Vampire \texttt{hpm4}. La configuración de cada ejecución establece una duración objetivo de 120~s y cinco repeticiones por ejecución. Las cargas STREAM y DGEMM se combinaron con los seis perfiles de ejecución descritos anteriormente. Idle se ejecutó una única vez como referencia. Para STREAM se emplearon vectores de 50 millones de elementos y, para DGEMM, matrices de orden 1024. 
+
+La Tabla~\ref{tab:parametros-campania-final} reúne los parámetros principales utilizados en la campaña final.
+
+\begin{table}[htbp]
+\centering
+\caption{Parámetros de la campaña experimental final.}
+\label{tab:parametros-campania-final}
+\resizebox{\textwidth}{!}{\input{analysis/capitulo6/tablas/configuracion}}
+\end{table}
+
+La Figura~\ref{fig:campania-experimental} resume las combinaciones de cargas, perfiles y repeticiones que forman la campaña final.
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c}
+\diagramnodeaccent[0.56\textwidth]{Campaña JSON: cargas, perfiles, duración y repeticiones} \\[3pt]
+\diagramdown \\[3pt]
+\begin{tabular}{c@{\hspace{0.25cm}}c@{\hspace{0.25cm}}c}
+\diagramnode[0.22\textwidth]{Carga\\Idle/STREAM/\\DGEMM} &
+\diagramnode[0.22\textwidth]{Perfil\\1, 2, 4, 6, 8, 12} &
+\diagramnode[0.22\textwidth]{Repetición\\\texttt{r1}\ldots\texttt{r5}}
+\end{tabular} \\[3pt]
+\diagramdown \\[3pt]
+\diagramnode[0.56\textwidth]{Ejecuciones SLURM trazables por \texttt{run\_id}}
+\end{tabular}
+\caption{Configuración de cargas, perfiles y repeticiones de la campaña final.}
+\label{fig:campania-experimental}
+\end{figure}
+
+Cada combinación de carga y perfil origina cinco ejecuciones independientes, salvo Idle, que se utiliza como referencia única. Cada resultado queda asociado a su configuración y a un identificador de ejecución, lo que permite conservar las repeticiones individualmente durante el análisis.
+
+Que los programas de prueba se repitan cinco veces permite tener un equilibrio entre disponer de varias observaciones para estudiar la dispersión de los resultados y mantener una duración razonable para la campaña completa. La prueba Idle, sin embargo, se ejecuta una única vez al utilizarse como referencia del consumo en ausencia de una carga intensiva.
+
+\section{Procedimiento de ejecución}
+\label{sec:procedimiento-diseno-experimental}
+
+El cauce automatizado utilizado para ejecutar las campañas se describe en la Sección~\ref{sec:pipeline-implementacion}. En este apartado se concreta cómo se aplicó dicho cauce durante la campaña final y qué condiciones se mantuvieron en las distintas ejecuciones.
+
+Cada ejecución parte de una configuración que identifica la carga de trabajo, el perfil de ejecución, la duración y el número de repetición. A partir de esta información se solicitan los recursos necesarios y se ejecuta la prueba en el nodo asignado.
+
+Al comenzar cada ejecución se inician las capturas energéticas y, a continuación, se ejecuta el programa de referencia. En Idle se mantiene una espera controlada, mientras que en STREAM y en DGEMM se utiliza el número de procesos definido por el perfil correspondiente. Una vez finalizada la carga, se detienen las capturas de datos y se almacenan las muestras y los resultados asociados a la ejecución.
+
+La figura~\ref{fig:procedimiento-ejecucion} resume las principales etapas de una ejecución experimental, desde la preparación del entorno hasta el almacenamiento y publicación de los resultados.
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c@{}c@{}c@{}c@{}c}
+\diagramnode{Preparación\\del entorno} & \diagramarrow &
+\diagramnode{Inicio de\\capturas} & \diagramarrow &
+\diagramnodeaccent{Ejecución\\y medida} \\
+&&&& \diagramdown \\
+\diagramnode{Publicación de\\datos agregados} & \diagramleftarrow &
+\diagramnode{Guardar\\CSV/JSON} & \diagramleftarrow &
+\diagramnode{Finalización\\de capturas}
+\end{tabular}
+\caption{Secuencia temporal de una ejecución experimental.}
+\label{fig:procedimiento-ejecucion}
+\end{figure}
+
+La delimitación temporal de las capturas es necesaria para relacionar las medidas energéticas con la carga evaluada. Las capturas deben cubrir completamente la ejecución del programa de referencia; de lo contrario, los valores calculados podrían representar solo una parte de la prueba. Aunque no es posible eliminar toda la actividad de fondo del sistema, la automatización permite aplicar el mismo procedimiento en todas las ejecuciones y facilita la comparación de los resultados.
+
+Al finalizar cada prueba se conservan las muestras originales, los resultados calculados y los datos necesarios para identificar su configuración. La organización de estos archivos se describe en la Sección~\ref{sec:almacenamiento-implementacion}.
+
+Antes de incorporar una ejecución al conjunto de resultados se comprueban su estado final, la cobertura temporal de las capturas, el número de muestras, la validez de los valores numéricos y la correspondencia entre el nodo y el dispositivo de medida externa. La mera existencia de un archivo de muestras no garantiza que la ejecución esté completa. Si alguna de estas comprobaciones falla, se conserva la información necesaria para diagnosticar el problema, pero la ejecución no se utiliza en el análisis experimental.
+
+\section{Repetibilidad y control experimental}
+\label{sec:repetibilidad-diseno-experimental}
+
+Los requisitos de trazabilidad y homogeneidad experimental se establecen en la Sección~\ref{sec:requisitos-sistema}, mientras que los mecanismos utilizados para conservar la configuración, las muestras y los metadatos se describen en el Capítulo~\ref{chap:implementacion}. En esta sección se concreta cómo se aplican esas propiedades al protocolo experimental.
+
+La repetibilidad se estudia mediante cinco ejecuciones independientes de cada combinación activa de programa de prueba y perfil. Todas las repeticiones mantienen la misma duración objetivo, el mismo número de procesos, los mismos parámetros del programa y el mismo nodo de cómputo. Cada ejecución conserva, no obstante, su propio identificador \texttt{run\_id}, de manera que los resultados individuales no se pierden al calcular los valores agregados.
+
+La repetición de una configuración no implica que los resultados deban ser idénticos. El estado térmico del procesador, la frecuencia efectiva y la actividad de fondo pueden introducir variaciones incluso cuando se mantienen los parámetros declarados. Por este motivo, la estabilidad se evalúa posteriormente mediante estadísticos descriptivos y el coeficiente de variación, según se expone en el Capítulo~\ref{chap:validacion-experimental}.
+
+Idle se ejecuta una única vez como referencia y, por tanto, no permite evaluar la variabilidad entre repeticiones. Las conclusiones sobre repetibilidad se limitan a las configuraciones activas de STREAM y DGEMM.
+
+La conservación de la campaña, los parámetros y las muestras originales facilita que el procedimiento pueda volver a ejecutarse y que los resultados puedan recalcularse. Esta posibilidad favorece la reproducibilidad del análisis, aunque la campaña realizada evalúa directamente la repetibilidad dentro del nodo y las condiciones estudiadas.

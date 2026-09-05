@@ -1,0 +1,155 @@
+\chapter{Antecedentes}
+\label{chap:antecedentes}
+
+\section{Computación de Altas Prestaciones (HPC)}
+
+La Computación de Altas Prestaciones, habitualmente denominada HPC, agrupa el conjunto de arquitecturas, técnicas de programación, sistemas de ejecución y metodologías orientadas a resolver problemas con intensa carga computacional. Estos problemas se dan típicamente en ámbitos como la simulación científica, la ingeniería, la predicción meteorológica, el análisis de datos, la bioinformática o la inteligencia artificial. La característica común de estos campos es la necesidad de ejecutar grandes volúmenes de operaciones en tiempos razonables, normalmente inferiores a los que puede ofrecer un equipo convencional.
+
+Los sistemas HPC modernos se construyen generalmente como clústeres de computadores. Un clúster está formado por múltiples nodos conectados mediante una red y gestionados en común. Cada nodo dispone de uno o varios procesadores, memoria principal y acceso al almacenamiento. Esta organización permite explotar paralelismo dentro de un nodo y, cuando la aplicación lo requiere, entre nodos distintos.
+
+La literatura clásica sobre HPC, como la obra de \textcite{hager2011}, destaca que el rendimiento de una aplicación no depende únicamente del número de operaciones aritméticas que puede ejecutar el procesador por segundo. También intervienen factores como la jerarquía de memoria, el ancho de banda disponible, la localidad de los datos, la comunicación entre procesos y la eficiencia de la paralelización. Consecuentemente, evaluar un sistema de computación de altas prestaciones exige considerar tanto el hardware como el software (sistema operativo) que organiza y ejecuta las cargas de trabajo.
+
+En un clúster, los usuarios no suelen ejecutar sus aplicaciones directamente en los nodos de cómputo. En su lugar, emplean un sistema de gestión de trabajos que recibe solicitudes de recursos, organiza colas de espera y asigna los nodos de acuerdo con políticas definidas por los administradores. Este flujo de operaciones permite compartir la infraestructura entre múltiples usuarios y controlar los recursos asignados a cada trabajo \parencite{hager2011}
+
+Históricamente, el rendimiento de un sistema en HPC se ha medido mediante métricas relacionadas con la velocidad de cálculo, concretamente número de operaciones en coma flotante por segundo. Iniciativas como \textcite{top500} han contribuido a clasificar los supercomputadores según su rendimiento usando programas de pruebas (benchmarks). No obstante, el aumento de escala de los sistemas ha hecho que la energía consumida adquiera una importancia equiparable al rendimiento. La eficiencia energética ya es una dimensión a considerar en el diseño y explotación de infraestructuras HPC, como refleja la existencia de clasificaciones como \textcite{green500}.
+
+\section{Consumo energético en sistemas HPC}
+
+El consumo energético en sistemas HPC constituye uno de los principales retos de la computación moderna. A medida que los clústeres de computadores aumentan en tamaño, frecuencia de uso y densidad de integración, el coste energético correspondiente se vuelve más significativo. La energía consumida no afecta únicamente al coste económico del uso de la infraestructura, sino también a la fiabilidad de los componentes, la necesidad de refrigeración y a la sostenibilidad ambiental de los centros de datos.
+
+La visión del centro de datos como un computador a gran escala, propuesta por \textcite{barroso2018datacenter} en \textit{\citetitle{barroso2018datacenter}}, permite comprender que el consumo de un sistema no se limita a los procesadores. También intervienen memoria, almacenamiento, red, fuentes de alimentación, sistemas de refrigeración y equipamiento auxiliar. No obstante, en aplicaciones HPC tradicionales, la CPU continúa siendo un componente fundamental, tanto por su contribución directa al consumo como por su papel en la ejecución de cargas científicas y técnicas.
+
+En la evaluación energética de aplicaciones HPC es necesario distinguir entre potencia y energía. La potencia indica la rapidez con la que se utiliza o transifere energía, mientras que la energía representa la cantidad acumulada durante el intervalo temporal. El consumo energético es el producto de la potencia media por el tiempo, de forma que, para una potencia dada el consumo de energía será mayor cuanto mayor sea el tiempo. Obviamente, también se verifica que el consumo en un tiempo determinado será menor cuanto menor sea la potencia consumida durante ese periodo de tiempo. Por ello, el análisis energético debe considerar simultáneamente el tiempo de ejecución y la potencia observada.
+
+La unidad de energía en el Sistema Internacional es el julio (\(\mathrm{J}\)), mientras que la potencia se expresa en vatios (\(\mathrm{W}\)). Un vatio representa un julio por segundo, por lo que \(1\,\mathrm{W}=1\,\mathrm{J}/\mathrm{s}\). También puede utilizarse el vatio hora (\(\mathrm{Wh}\)) como unidad de energía, teniendo en cuenta que \(1\,\mathrm{Wh}=3600\,\mathrm{J}\).
+
+La eficiencia energética se expresa con frecuencia como una relación entre trabajo útil realizado y energía consumida. En aplicaciones de cálculo puede medirse mediante el número de operaciones realizadas por julio, mientras que en cargas orientadas a memoria puede relacionarse con los bytes transferidos por unidad de energía. En este trabajo también se analizan la energía consumida, la potencia media, la potencia máxima y la duración de cada ejecución.
+
+El consumo energético de una CPU no es constante. Depende de distintos factores como la carga de trabajo, la frecuencia de funcionamiento, los estados de energía, el número de núcleos activos, la actividad vectorial, el acceso a memoria y las decisiones del sistema operativo. Además, las políticas de gestión dinámica de voltaje y frecuencia pueden modificar el consumo del procesador durante la ejecución. Esta variabilidad justifica la necesidad de campañas experimentales automatizadas, capaces de repetir medidas y registrar metadatos suficientes para interpretar los resultados.
+
+En el caso de este trabajo, el interés se centra en caracterizar el comportamiento energético de las CPUs en un clúster HPC. Para ello, se emplean cargas de trabajo con perfiles diferenciados y se registran métricas energéticas obtenidas  con la herramienta Intel RAPL. El objetivo metodológico no consiste en obtener una única medida aislada, sino en disponer de una plataforma capaz de ejecutar campañas, recopilar datos y facilitar su análisis posterior.
+
+\section{Arquitecturas modernas de CPU}
+
+Las CPUs modernas han evolucionado hacia arquitecturas altamente paralelas y jerárquizadas. El incremento sostenido de la frecuencia de reloj dejó de ser el mecanismo principal para mejorar el rendimiento debido a limitaciones térmicas y energéticas. Como respuesta, los fabricantes incorporaron más núcleos por procesador, unidades de procesamiento vectoriales, jerarquías de memoria caché más complejas y mecanismos avanzados de gestión energética. Estas mejoras influyen directamente en la ejecución de aplicaciones HPC y en su consumo energético.
+
+\subsection{Multinúcleo y paralelismo}
+
+La arquitectura multinúcleo integra varios núcleos de procesamiento dentro de un mismo procesador. Cuando se utiliza multihilo simultáneo (SMT), cada núcleo puede aparecer ante el sistema operativo como más de un procesador lógico. Los hilos de un programa, entendidos como secuencias de instrucciones gestionadas por el sistema operativo, pueden asignarse a estos procesadores lógicos para aprovechar el paralelismo disponible.
+
+El paralelismo multinúcleo mejora el rendimiento, pero introduce retos adicionales. Una aplicación debe dividir su trabajo entre varios hilos de forma eficiente, minimizar la sincronización innecesaria y evitar desequilibrios de la carga. En caso contrario, el aumento del número de hilos no necesariamente se puede traducir en una mejora proporcional del rendimiento computacional. Desde el punto de vista energético, utilizar más núcleos puede aumentar la potencia instantánea, aunque reduciendo el tiempo de ejecución. El efecto final sobre la energía consumida depende del equilibrio entre ambos factores.
+
+El manual de optimización de las arquitecturas Intel 64 e IA-32 describe aspectos que afectan al rendimiento de las aplicaciones en procesadores modernos, como la vectorización, la predicción de saltos, el uso de caché, la afinidad de hilos y el aprovechamiento de instrucciones SIMD \parencite{intelOptimizationManual}. Estas técnicas pueden modificar el grado de actividad interna del procesador y, con ello, el comportamiento energético observado.
+
+En entornos HPC, el control del número de hilos y de su ubicación es especialmente importante. Si los hilos migran entre núcleos durante la ejecución, puede aumentar el tiempo de ejecución y la energía consumida. Por ello, en este tipo de experimentos se intenta mantener controlada la asignación de los procesos e hilos a los procesadores disponibles. Cuando esto no es posible, resulta útil registrar la asignación realizada por el sistema para poder interpretar correctamente las diferencias entre ejecuciones. Esta práctica permite comparar ejecuciones bajo condiciones   más controladas.
+
+\subsection{Jerarquía de memoria}
+
+La jerarquía de memoria es uno de los factores más determinantes en el rendimiento de una CPU moderna. Los registros y las cachés ofrecen acceso rápido pero capacidad limitada, mientras que la memoria principal proporciona mayor capacidad a costa de mayor latencia y menor ancho de banda relativo. Esta diferencia produce una brecha entre la velocidad de cálculo del procesador y la velocidad a la que los datos pueden ser suministrados.
+
+En aplicaciones HPC, la eficiencia de acceso a memoria puede ser tan importante como la capacidad de cálculo. Una aplicación que reutiliza datos en caché puede mantener una alta actividad aritmética, mientras que una aplicación que accede constantemente a memoria principal puede quedar limitada por el ancho de banda. Esta distinción resulta relevante al seleccionar programas de prueba, ya que permite diferenciar entre cargas orientadas principalmente al cálculo y cargas condicionadas por el acceso a memoria.
+
+La localidad espacial y temporal de los datos es un principio básico para aprovechar la jerarquía de memoria. La localidad espacial implica acceder a posiciones de memoria próximas, favoreciendo el uso de líneas de caché. La localidad temporal implica reutilizar datos en un intervalo corto de tiempo, evitando accesos repetidos a niveles más lentos. Las optimizaciones de código y las bibliotecas numéricas de alto rendimiento explotan estos principios mediante técnicas como el bloqueo, la vectorización y la organización cuidadosa de bucles.
+
+Desde el punto de vista energético, los accesos a memoria también tienen un coste. Mover datos entre niveles de la jerarquía puede consumir una cantidad significativa de energía, especialmente cuando se accede a memoria principal o se generan transferencias entre diferentes dominios del sistema. Por ello, una aplicación con bajo número de operaciones aritméticas por byte transferido puede presentar un perfil energético diferente al de una aplicación intensiva en cómputo.
+
+\subsection{Arquitectura NUMA}
+
+En algunos sistemas con varios procesadores, la memoria se organiza siguiendo una arquitectura NUMA (\emph{Non-Uniform Memory Access}). En esta organización, el tiempo necesario para acceder a una zona de memoria puede depender de su ubicación respecto al procesador que ejecuta el programa. El acceso a la memoria asociada al propio procesador suele ser más rápido que el acceso a la memoria asociado a otro procesador.
+
+Esta diferencia puede afectar especialmente a las cargas que realizan transferencias frecuentes de datos entre el procesador y la memoria. Por ello, la ubicación de los procesos y de los datos puede introducir variaciones de rendimiento entre ejecuciones aparentemente equivalentes.
+
+
+
+\section{Técnicas de monitorización energética}
+
+La monitorización energética puede abordarse tomando medidas externas o internas. Ambos tipos de medidas presentan ventajas y limitaciones, y su uso depende del objetivo del estudio, de la granularidad requerida y de la infraestructura de la que se dispone. En sistemas HPC, donde se ejecutan campañas con numerosos trabajos, la automatización y la capacidad de asociar medidas a ejecuciones concretas son criterios relevantes.
+
+\subsection{Medidas externas}
+
+Para hacer medidas externas se utilizan dispositivos situados fuera del componente a medir o incluso del propio servidor. Pueden emplearse medidores de potencia en la entrada eléctrica del equipo, unidades de distribución de energía instrumentadas, sensores en placas base o analizadores especializados. Estos dispositivos tienen la ventaja de que miden consumo eléctrico global.
+
+Sin embargo, las medidas externas también presentan limitaciones. En primer lugar, no se puede saber el consumo de un componente concreto o de una ejecución individual. En segundo lugar, la instalación de la instrumentación puede requerir acceso físico al hardware, modificaciones en la infraestructura o equipamiento específico. En tercer lugar, puede ser complejo sincronizar con precisión la medida externa con el intervalo de ejecución del programa de pruebas, especialmente en campañas automatizadas.
+
+En un clúster compartido, las medidas externas a nivel de nodo incluyen la actividad de otros componentes, como memoria, red, almacenamiento externo o incluso ventilación. Esto no invalida su utilidad, pero obliga a interpretar los datos adecuadamente. Cuando el objetivo específico es caracterizar el consumo asociado a un componente concreto, como la CPU, durante ejecuciones controladas, las medidas internas proporcionadas por el procesador resultan más adecuadas que medir el consumo global del sistema.
+
+\subsection{Medidas internas}
+
+Las medidas internas se adquieren a partir de los valores proporcionados por sensores, contadores u otros elementos del propio hardware. En los procesadores modernos existen interfaces que permiten obtener estimaciones del consumo energético, métricas de rendimiento, frecuencia de funcionamiento y otros indicadores de actividad. Estos datos pueden consultarse desde el sistema operativo e integrarse mediante scripts en los procesos de ejecución y monitorización. 
+
+La principal ventaja de las medidas internas es su facilidad de automatización. Una plataforma experimental puede leer contadores antes y después de ejecutar un programa de referencia, calcular diferencias y almacenar los resultados sin requerir instrumentación adicional. Además, algunas interfaces proporcionan granularidad por dominio del procesador, lo que permite distinguir, cuando está disponible, entre consumo de paquete, núcleos u otros subsistemas.
+
+Las medidas internas y externas pueden abarcar ámbitos diferentes del sistema. Una medida interna puede corresponder a determinados componentes del procesador, mientras que una medida externa puede incluir el conjunto completo del equipo. Por este motivo, sus valores no deben interpretarse necesariamente como dos medidas equivalentes ni utilizarse directamente para calcular el error de una respecto a la otra. Su análisis conjunto requiere conocer qué componentes incluye cada fuente y comprobar que ambas medidas correspondan al mismo intervalo temporal.
+
+\section{Intel RAPL}
+
+RAPL es una tecnología incorporada en procesadores Intel que permite medir y gestionar el consumo energético de distintas partes del procesador. Aunque se suele utilizar para establecer límites de potencia, RAPL también se usa para obtener valores del consumo energético en estudios de rendimiento y eficiencia \parencite{khan2018Rapl}.
+
+El funcionamiento básico de RAPL se basa en la lectura de contadores que se encuentran en el procesador y que almacenan valores acumulativos de la energía consumida. Para medir el consumo durante la ejecución de un programa, se realiza una lectura inicial, se ejecuta la carga de trabajo y se realiza una lectura final.  La energía consumida durante ese intervalo se calcula como la diferencia entre dichos valores. Este procedimiento se implementa fácilmente en campañas automatizadas, ya que puede integrarse en scripts y asociarse a cada programa de referencia.
+
+Los elementos del procesador que puede medir dependen de la generación del procesador. De forma general, puede medir el consumo del chip de CPU completo, los núcleos, la memoria u otros componentes. El chip de CPU completo (\textit{package domain})  incluye, además de los núcleos, la caché, lógica interna y otros componentes. Para interpretar correctamente estos valores hay que tener en cuenta la arquitectura concreta y las interfaces del sistema operativo.
+
+En un sistema Linux, la interfaz \emph{powercap} permite acceder desde el sistema operativo a los contadores energéticos proporcionados por Intel RAPL \parencite{linuxPowercap}. Esta interfaz expone los dominios energéticos disponibles y permite consultar sus valores acumulados. Los ficheros concretos utilizados por el muestreador y el tratamiento aplicado a sus lecturas se describen en la Sección~\ref{sec:adquisicion-implementacion}.
+
+La figura~\ref{fig:rapl-flujo} muestra el flujo conceptual de toma de medidas mediante RAPL. Las diferencias entre lecturas sucesivas permiten obtener energía y potencia durante el intervalo de tiempo considerado.
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c@{}c@{}c@{}c@{}c}
+\diagramnode{Lectura inicial\\$E(t_0)$} & \diagramarrow &
+\diagramnodeaccent{Benchmark\\entre $t_0$ y $t_1$} & \diagramarrow &
+\diagramnode{Lectura final\\$E(t_1)$} \\
+&& \diagramdown && \\
+&& \diagramnode[0.31\textwidth]{
+$\Delta t=t_1-t_0$\\[2pt]
+$\Delta E=E(t_1)-E(t_0)$\\[2pt]
+$P=\Delta E/\Delta t$
+} &&
+\end{tabular}
+\caption{Flujo conceptual de medición energética mediante Intel RAPL.}
+\label{fig:rapl-flujo}
+\end{figure}
+
+En la Figura~\ref{fig:rapl-flujo}, \(E(t_0)\) representa la lectura acumulada del contador RAPL al inicio del intervalo de medida y \(E(t_1)\) la lectura obtenida al finalizarlo. La diferencia \(\Delta E\) corresponde a la energía consumida durante el intervalo \(\Delta t=t_1-t_0\), mientras que \(P\) representa la potencia media calculada para dicho intervalo.
+
+\section{Programas de pruebas para la evaluación del rendimiento}
+
+Los programas de pruebas, también denominados \emph{benchmarks}, son cargas de trabajo diseñadas para evaluar aspectos concretos de un sistema. En HPC se utilizan para comparar configuraciones y estudiar el comportamiento del hardware y del software bajo condiciones controladas. No representan necesariamente toda la complejidad de una aplicación real, pero permiten aislar determinados patrones de uso de los recursos.
+
+La elección de un programa de prueba depende del componente o comportamiento que se quiera estudiar. Algunas cargas realizan principalmente operaciones de cálculo, mientras que otras dedican una parte importante de su tiempo a transferir datos entre el procesador y la memoria. También puede utilizarse un periodo sin carga intensiva como referencia para contextualizar las medidas obtenidas durante las ejecuciones activas.
+
+\subsection{Cargas limitadas por la capacidad de cálculo}
+
+Una carga \emph{CPU-bound} realiza una cantidad elevada de operaciones aritméticas y utiliza de forma intensiva las unidades de cálculo del procesador. Aunque el acceso a memoria continúa siendo necesario, su rendimiento depende principalmente de la capacidad del procesador para ejecutar las operaciones requeridas.
+
+Desde el punto de vista energético, este tipo de carga permite estudiar el comportamiento del procesador bajo una actividad de cálculo elevada. Sin embargo, una mayor utilización de sus unidades de cálculo no implica necesariamente un mayor consumo total de energía, ya que también debe tenerse en cuenta la duración de la ejecución.
+
+\subsection{Cargas limitadas por el acceso a memoria}
+
+Una carga \emph{memory-bound} dedica una parte importante de su tiempo a transferir datos entre el procesador y la memoria. En este caso, el rendimiento puede quedar limitado por la velocidad con la que los datos llegan al procesador, aunque sus unidades de cálculo todavía dispongan de capacidad para realizar más operaciones.
+
+El comportamiento de estas cargas depende de factores como el ancho de banda disponible, el patrón de acceso a los datos y la organización de la memoria. Por este motivo, pueden presentar una evolución diferente a la de las cargas orientadas principalmente al cálculo cuando se incrementa el número de recursos utilizados.
+
+\subsection{Referencia sin carga intensiva}
+
+También puede resultar útil medir el comportamiento del sistema durante un intervalo en el que no se ejecuta una carga computacional intensiva. Esta situación no representa una inactividad absoluta, ya que el sistema operativo, los servicios del nodo y otros procesos en segundo plano continúan funcionando.
+
+La medida obtenida durante este intervalo proporciona una referencia para contextualizar los resultados de las cargas activas. No obstante, no debe interpretarse como el consumo de un sistema completamente apagado o sin actividad.
+
+\section{Herramientas de monitorización y análisis}
+
+La monitorización permite observar la evolución temporal del estado de un sistema y comprobar si sus componentes continúan funcionando durante una ejecución. En campañas experimentales largas resulta útil para supervisar el progreso de los trabajos, verificar que las métricas se actualizan y detectar situaciones que requieren revisión. Esta información complementa los resultados almacenados, pero no los sustituye como fuente del análisis experimental.
+
+Prometheus es un sistema de monitorización basado en series temporales. En su modelo de datos, cada serie queda identificada por el nombre de la métrica y su conjunto de etiquetas, lo que permite filtrar y agrupar la información \parencite{prometheusDataModel}.
+
+Grafana actúa como una plataforma de visualización. Permite utilizar paneles que consultan fuentes de datos como Prometheus y representan esos datos utilizando distintas visualizaciones \parencite{grafanaDashboards}. En un entorno experimental, herramientas de este tipo facilitan poder inspeccionar campañas e identificar comportamientos que requieran revisión.
+
+La selección de estas herramientas y su integración dentro de la plataforma desarrollada se justifican en la Sección~\ref{sec:monitorizacion-implementacion}.
+
+\section{Trabajos relacionados}
+
+El estudio energético de los sistemas de cómputo ha evolucionado en paralelo con el crecimiento de los centros de datos y de la computación de altas prestaciones. Las clasificaciones TOP500 y Green500 reflejan dos perspectivas complementarias. La lista TOP500 clasifica los supercomputadores según su rendimiento computacional, mientras que la lista Green500 los ordena según su eficiencia energética. Esta evolución muestra que el rendimiento computacional aislado ya no es suficiente para caracterizar infraestructuras HPC modernas y se empieza a considerar igualmente relevante el consumo energético.
+
+El estudio \emph{The Datacenter as a Computer} contribuyó a consolidar una visión sistémica del centro de datos, considerando el conjunto de servidores, red, almacenamiento, refrigeración y alimentación como una máquina a gran escala \parencite{barroso2018datacenter}. Aunque el presente trabajo se centra en la CPU y en un clúster concreto, esta perspectiva es relevante porque recuerda que el consumo energético forma parte de un entorno más amplio.
+
+En el ámbito de las medidas internas, los estudios sobre Intel RAPL respaldan su utilidad para caracterizar la energía consumida de los diferentes componentes del procesador o en su conjunto \parencite{khan2018Rapl}. Para interpretar estas medidas de forma consistente, en el capítulo~\ref{chap:implementacion} se establecen criterios para conservar las series temporales, registrar las unidades de cada valor y comprobar la relación entre los distintos dominios energéticos antes de agregarlos.

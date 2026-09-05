@@ -1,0 +1,4838 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "tfg-hpc-summary-v2-vampire",
+    "namespace": "default",
+    "annotations": {
+      "grafana.app/folderTitle": "TFG",
+      "tfg-energy-lab/template": "true",
+      "tfg-energy-lab/source": "adapted-from-exported-dashboard"
+    }
+  },
+  "spec": {
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "query": {
+            "kind": "DataQuery",
+            "group": "grafana",
+            "version": "v0",
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "spec": {}
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "builtIn": true,
+          "legacyOptions": {
+            "type": "dashboard"
+          }
+        }
+      }
+    ],
+    "cursorSync": "Crosshair",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "id": 1,
+          "title": "¿Qué se está comparando?",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "### RAPL y Vampire no miden exactamente el mismo alcance\n\n**RAPL** es la medición interna proporcionada por los contadores energéticos del procesador para los dominios disponibles en esta plataforma. No se interpreta aquí como consumo total del servidor.\n\n**Vampire** es la medición eléctrica externa del servidor o de la alimentación monitorizada por el dispositivo Vampire. Puede incluir partes del sistema que no aparecen en RAPL.\n\nPor ello, Vampire normalmente registra más energía que RAPL. La diferencia **Vampire − RAPL** debe leerse como **energía no cubierta por la medida RAPL** más posibles diferencias de alcance, sincronización e incertidumbre, no como el consumo exacto de un componente concreto."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "id": 2,
+          "title": "Resumen de la ejecución seleccionada",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "Selecciona una única **Ejecución** (`run_id`) para leer esta fila como resumen de un trabajo concreto. Si dejas varias ejecuciones seleccionadas, los paneles muestran una serie por ejecución."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Energía consumida: RAPL frente a Vampire",
+          "description": "Energía final agregada del benchmark. RAPL procede de los contadores internos del procesador; Vampire procede de la captura eléctrica externa validada.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showUnfilled": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "joule"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "id": 4,
+          "title": "Potencia media: RAPL frente a Vampire",
+          "description": "Potencia media agregada. Para Vampire se calcula preferentemente como energía externa dividida por la duración recortada al intervalo del benchmark.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showUnfilled": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "watt"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "id": 5,
+          "title": "Validez de la captura seleccionada",
+          "description": "1 indica estado correcto y 0 indica fallo o ausencia. RAPL se infiere mediante número de muestras porque no existe aún una métrica explícita de estado RAPL.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ejecución"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(tfg_internal_rapl_samples{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}) > 0",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire"
+                      }
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#F2495C"
+                      },
+                      {
+                        "value": 1,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "id": 6,
+          "title": "Potencia máxima: RAPL frente a Vampire",
+          "description": "Máximo observado en cada fuente durante la ventana procesada. Las ventanas de medida no tienen exactamente el mismo alcance físico.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showUnfilled": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "watt"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "id": 7,
+          "title": "Duración: benchmark y ventana Vampire",
+          "description": "La duración del benchmark procede del sistema de experimentación. La duración Vampire corresponde al intervalo externo recortado y validado.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Duración del benchmark"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ventana capturada por Vampire"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showUnfilled": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "id": 8,
+          "title": "Diferencia de alcance: Vampire − RAPL",
+          "description": "Diferencia entre energía externa e interna. No debe interpretarse directamente como consumo exacto del resto del servidor; incluye alcance de medida, sincronización e incertidumbre.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) - on(run_id) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Diferencia · Vampire − RAPL"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) - on(run_id) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})) / on(run_id) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) > 0)",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Diferencia · % de Vampire"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "fixed"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "joule"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*% de Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "percent"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-9": {
+        "kind": "Panel",
+        "spec": {
+          "id": 9,
+          "title": "Porcentaje de energía externa cubierto por RAPL",
+          "description": "Porcentaje de la energía medida externamente que queda cubierta por la estimación RAPL. Se oculta si Vampire no está disponible o es cero.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}) / on(run_id) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) > 0)",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL / Externa · Vampire"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#F2495C"
+                      },
+                      {
+                        "value": 50,
+                        "color": "#F2CC0C"
+                      },
+                      {
+                        "value": 80,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-10": {
+        "kind": "Panel",
+        "spec": {
+          "id": 10,
+          "title": "Comparación RAPL frente a Vampire",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "Las siguientes gráficas agregan las repeticiones con **media** para cada combinación filtrada de benchmark y número de núcleos. No son series temporales."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "id": 11,
+          "title": "Energía interna y externa por número de cores",
+          "description": "Media de energía por benchmark y número de núcleos. Usa barras agrupadas para comparar RAPL y Vampire sin apilarlas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "joule"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "id": 12,
+          "title": "Potencia media interna y externa por número de cores",
+          "description": "Media de potencia media por benchmark y número de núcleos. Los colores codifican siempre la fuente de medida.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_internal_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_external_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "watt"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-13": {
+        "kind": "Panel",
+        "spec": {
+          "id": 13,
+          "title": "Energía no cubierta por RAPL según número de cores",
+          "description": "Media de Vampire − RAPL por cores. Es una diferencia de alcance de medida, no una atribución directa a componentes concretos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) - on(run_id) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}))",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Diferencia · Vampire − RAPL · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "joule"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-14": {
+        "kind": "Panel",
+        "spec": {
+          "id": 14,
+          "title": "Cobertura RAPL por número de cores",
+          "description": "Media de RAPL/Vampire × 100 por benchmark y cores. Valores cercanos a 100 % indican que la medida interna cubre gran parte de la energía externa medida.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (100 * (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}) / on(run_id) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) > 0))",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL / Externa · Vampire · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#F2495C"
+                      },
+                      {
+                        "value": 50,
+                        "color": "#F2CC0C"
+                      },
+                      {
+                        "value": 80,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-15": {
+        "kind": "Panel",
+        "spec": {
+          "id": 15,
+          "title": "Escalabilidad y eficiencia energética",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "Estos paneles muestran medias por número de núcleos. Las métricas de rendimiento y Ops/J solo son aplicables a benchmarks que publican operaciones válidas; `idle` no debe interpretarse como ausencia de datos experimental."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-16": {
+        "kind": "Panel",
+        "spec": {
+          "id": 16,
+          "title": "Duración del benchmark por número de cores",
+          "description": "Duración media del benchmark. No incluye la duración de pre/post captura Vampire.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Benchmark · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-17": {
+        "kind": "Panel",
+        "spec": {
+          "id": 17,
+          "title": "Energía interna RAPL según número de cores",
+          "description": "Energía RAPL media por benchmark y número de núcleos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "joule"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-18": {
+        "kind": "Panel",
+        "spec": {
+          "id": 18,
+          "title": "Energía externa Vampire según número de cores",
+          "description": "Energía Vampire media por benchmark y número de núcleos.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "joule"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-19": {
+        "kind": "Panel",
+        "spec": {
+          "id": 19,
+          "title": "Rendimiento por número de cores",
+          "description": "Operaciones por segundo medias. No se calcula para idle ni para ejecuciones sin operaciones publicadas.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_run_ops_per_second{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",benchmark!=\"idle\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ops/s · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "ops"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-20": {
+        "kind": "Panel",
+        "spec": {
+          "id": 20,
+          "title": "Eficiencia energética por número de cores",
+          "description": "Ops/J calculado por separado con energía RAPL y energía Vampire. No aplicable a idle ni a ejecuciones sin operaciones.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_run_ops_per_joule{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",benchmark!=\"idle\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "avg by (benchmark, cores) (tfg_run_ops_total{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",benchmark!=\"idle\"} / on(run_id) group_right(vampire_device) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) > 0))",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire · {{benchmark}} · {{cores}} cores"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "barchart",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "orientation": "auto",
+                "barWidth": 0.65,
+                "groupWidth": 0.7,
+                "stacking": "none",
+                "showValue": "never"
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "ops/J"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-21": {
+        "kind": "Panel",
+        "spec": {
+          "id": 21,
+          "title": "Calidad y validez de las mediciones",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "### Interpretación de calidad\n\nEl estado de Vampire procede de `tfg_external_capture_success`. RAPL no publica todavía una métrica explícita de éxito/fallo; el indicador de RAPL de este dashboard usa como aproximación que existan muestras RAPL (`tfg_internal_rapl_samples > 0`) junto con el estado del trabajo."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-22": {
+        "kind": "Panel",
+        "spec": {
+          "id": 22,
+          "title": "Estado general de la medición",
+          "description": "Resumen de validez para el conjunto filtrado. 1 significa correcto en todas las series seleccionadas; 0 indica al menos una serie fallida o ausente.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "min(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ejecución"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "min((tfg_internal_rapl_samples{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}) > 0)",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "min(tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire"
+                      }
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#F2495C"
+                      },
+                      {
+                        "value": 1,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-23": {
+        "kind": "Panel",
+        "spec": {
+          "id": 23,
+          "title": "Número de muestras: RAPL y Vampire",
+          "description": "Número de muestras disponibles tras procesar cada fuente. Un número bajo puede invalidar energía, potencia o comparaciones.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_rapl_samples{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Interna · RAPL · muestras"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_samples{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Externa · Vampire · muestras"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "bargauge",
+            "version": "",
+            "spec": {
+              "options": {
+                "displayMode": "basic",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showUnfilled": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-24": {
+        "kind": "Panel",
+        "spec": {
+          "id": 24,
+          "title": "Desajuste temporal: Vampire − benchmark",
+          "description": "Diferencia entre la ventana externa validada y la duración del benchmark. Valores grandes pueden indicar problemas de sincronización o recorte.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(tfg_external_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) - on(run_id) (tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Diferencia · duración Vampire − benchmark"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "fixed"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "s"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-25": {
+        "kind": "Panel",
+        "spec": {
+          "id": 25,
+          "title": "Capturas externas fallidas",
+          "description": "Tabla de ejecuciones con captura Vampire fallida. Los errores textuales se conservan en resultados JSON/logs, no como etiquetas Prometheus.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"} == 0",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Fallida · Vampire"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "reduce",
+                  "spec": {
+                    "options": {
+                      "includeTimeField": false,
+                      "labelsToFields": true,
+                      "mode": "seriesToRows",
+                      "reducers": [
+                        "last"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Field": true,
+                        "Time": true,
+                        "time": true,
+                        "instance": true,
+                        "job": true,
+                        "__name__": true
+                      },
+                      "renameByName": {
+                        "Last": "Valor",
+                        "run_id": "Ejecución",
+                        "benchmark": "Benchmark",
+                        "profile": "Perfil",
+                        "cores": "Núcleos",
+                        "threads": "Hilos",
+                        "rep": "Repetición",
+                        "node": "Nodo",
+                        "vampire_device": "Vampire",
+                        "language": "Lenguaje",
+                        "status": "Estado",
+                        "Value": "Valor"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true,
+                "footer": {
+                  "show": false
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#F2495C"
+                      },
+                      {
+                        "value": 1,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Interna.*RAPL.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#73BF69"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Externa.*Vampire.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2CC0C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Diferencia.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#5794F2"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*Fallida.*|.*fallida.*|.*Error.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#F2495C"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": ".*No disponible.*|.*No aplicable.*"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "#8F8F8F"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-26": {
+        "kind": "Panel",
+        "spec": {
+          "id": 26,
+          "title": "Resultados por ejecución",
+          "description": "Tabla de resultados finales por ejecución. Oculta `instance`, `job` y metadatos técnicos desde la vista de Grafana si no aportan información científica.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Duración benchmark"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Energía RAPL"
+                      }
+                    },
+                    "refId": "B",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Energía Vampire"
+                      }
+                    },
+                    "refId": "C",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) - on(run_id) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Diferencia"
+                      }
+                    },
+                    "refId": "D",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "100 * (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}) / on(run_id) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) > 0)",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Cobertura RAPL"
+                      }
+                    },
+                    "refId": "E",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Potencia media RAPL"
+                      }
+                    },
+                    "refId": "F",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Potencia media Vampire"
+                      }
+                    },
+                    "refId": "G",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_internal_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Potencia máxima RAPL"
+                      }
+                    },
+                    "refId": "H",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Potencia máxima Vampire"
+                      }
+                    },
+                    "refId": "I",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_run_ops_per_second{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",benchmark!=\"idle\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ops/s"
+                      }
+                    },
+                    "refId": "J",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_run_ops_per_joule{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",benchmark!=\"idle\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ops/J RAPL"
+                      }
+                    },
+                    "refId": "K",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_run_ops_total{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",benchmark!=\"idle\"} / on(run_id) group_right(vampire_device) ((tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}) > 0)",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Ops/J Vampire"
+                      }
+                    },
+                    "refId": "L",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Estado ejecución"
+                      }
+                    },
+                    "refId": "M",
+                    "hidden": false
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\",vampire_device=~\"$vampire_device\"}",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Estado Vampire"
+                      }
+                    },
+                    "refId": "N",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "labelsToFields",
+                  "spec": {
+                    "options": {
+                      "mode": "columns"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "joinByField",
+                  "spec": {
+                    "options": {
+                      "byField": "run_id",
+                      "mode": "outer"
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "time": true,
+                        "instance": true,
+                        "job": true,
+                        "__name__": true
+                      },
+                      "renameByName": {
+                        "run_id": "Ejecución",
+                        "benchmark": "Benchmark",
+                        "profile": "Perfil",
+                        "cores": "Núcleos",
+                        "threads": "Hilos",
+                        "rep": "Repetición",
+                        "node": "Nodo",
+                        "vampire_device": "Vampire",
+                        "language": "Lenguaje",
+                        "status": "Estado",
+                        "Value": "Valor",
+                        "Last": "Valor"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true,
+                "footer": {
+                  "show": false
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-27": {
+        "kind": "Panel",
+        "spec": {
+          "id": 27,
+          "title": "Diagnóstico técnico",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "text",
+            "version": "",
+            "spec": {
+              "options": {
+                "mode": "markdown",
+                "content": "### Notas de diagnóstico\n\nEste dashboard usa resultados agregados publicados en Pushgateway/Prometheus al terminar cada trabajo. Por eso no se muestran curvas temporales de potencia instantánea: repetir una métrica batch en cada scrape produce líneas horizontales que no describen la evolución física del benchmark.\n\nPara ver el perfil temporal real de Vampire debe usarse la serie original en InfluxDB, con sus timestamps de muestreo. En Prometheus se publican energía total, potencias agregadas, duración, muestras y estado de captura por ejecución."
+              },
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-28": {
+        "kind": "Panel",
+        "spec": {
+          "id": 28,
+          "title": "Última ejecución recibida",
+          "description": "Timestamp Unix de finalización publicado por el sistema al almacenar los resultados locales. Sirve para verificar que Prometheus recibió datos recientes.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "1000 * max(tfg_run_completed_unixtime{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "Última ejecución recibida"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "dateTimeAsIso"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-29": {
+        "kind": "Panel",
+        "spec": {
+          "id": 29,
+          "title": "Métricas publicadas por ejecución",
+          "description": "Inventario rápido de métricas TFG presentes en Prometheus para la campaña seleccionada. Útil para detectar métricas ausentes sin llenar el panel principal de diagnóstico.",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "${DS_PROMETHEUS}"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count by (__name__) ({__name__=~\"tfg_(internal|external|run|experiment)_.*\",campaign=~\"$campaign\"})",
+                        "instant": true,
+                        "range": false,
+                        "legendFormat": "{{__name__}}"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "reduce",
+                  "spec": {
+                    "options": {
+                      "includeTimeField": false,
+                      "labelsToFields": true,
+                      "mode": "seriesToRows",
+                      "reducers": [
+                        "last"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Field": true,
+                        "Time": true,
+                        "time": true,
+                        "instance": true,
+                        "job": true,
+                        "__name__": true
+                      },
+                      "renameByName": {
+                        "Last": "Valor",
+                        "run_id": "Ejecución",
+                        "benchmark": "Benchmark",
+                        "profile": "Perfil",
+                        "cores": "Núcleos",
+                        "threads": "Hilos",
+                        "rep": "Repetición",
+                        "node": "Nodo",
+                        "vampire_device": "Vampire",
+                        "language": "Lenguaje",
+                        "status": "Estado",
+                        "Value": "Valor"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "",
+            "spec": {
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true,
+                "footer": {
+                  "show": false
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "#73BF69"
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "GridLayout",
+      "spec": {
+        "items": [
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 0,
+              "width": 24,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-1"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 5,
+              "width": 24,
+              "height": 3,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-2"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 8,
+              "width": 8,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 8,
+              "y": 8,
+              "width": 8,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-4"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 16,
+              "y": 8,
+              "width": 8,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-5"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 14,
+              "width": 6,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-6"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 6,
+              "y": 14,
+              "width": 6,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-7"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 14,
+              "width": 6,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-8"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 18,
+              "y": 14,
+              "width": 6,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-9"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 20,
+              "width": 24,
+              "height": 3,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-10"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 23,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-11"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 23,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-12"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 31,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-13"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 31,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-14"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 39,
+              "width": 24,
+              "height": 3,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-15"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 42,
+              "width": 8,
+              "height": 7,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-16"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 8,
+              "y": 42,
+              "width": 8,
+              "height": 7,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-17"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 16,
+              "y": 42,
+              "width": 8,
+              "height": 7,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-18"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 49,
+              "width": 8,
+              "height": 7,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-19"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 8,
+              "y": 49,
+              "width": 16,
+              "height": 7,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-20"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 56,
+              "width": 24,
+              "height": 4,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-21"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 60,
+              "width": 8,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-22"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 8,
+              "y": 60,
+              "width": 8,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-23"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 16,
+              "y": 60,
+              "width": 8,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-24"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 66,
+              "width": 24,
+              "height": 6,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-25"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 72,
+              "width": 24,
+              "height": 10,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-26"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 82,
+              "width": 24,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-27"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 87,
+              "width": 8,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-28"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 8,
+              "y": 87,
+              "width": 16,
+              "height": 5,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-29"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "tfg",
+      "energy",
+      "rapl",
+      "hpc",
+      "vampire",
+      "integrated"
+    ],
+    "timeSettings": {
+      "timezone": "browser",
+      "from": "now-6h",
+      "to": "now",
+      "fiscalYearStartMonth": 0,
+      "hideTimepicker": false
+    },
+    "title": "TFG - HPC Run Summary (RAPL + Vampire)",
+    "variables": [
+      {
+        "kind": "DatasourceVariable",
+        "spec": {
+          "name": "DS_PROMETHEUS",
+          "pluginId": "prometheus",
+          "refresh": "onDashboardLoad",
+          "regex": "",
+          "current": {
+            "text": "Prometheus",
+            "value": "Prometheus"
+          },
+          "options": [],
+          "multi": false,
+          "includeAll": false,
+          "label": "Prometheus",
+          "hide": "dontHide",
+          "skipUrlSync": false,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "campaign",
+          "current": {
+            "text": "",
+            "value": ""
+          },
+          "label": "Campaña",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status, campaign)",
+              "refId": "Prometheus-campaign"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status, campaign)",
+          "options": [],
+          "multi": false,
+          "includeAll": false,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "benchmark",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Benchmark",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\"}, benchmark)",
+              "refId": "Prometheus-benchmark"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\"}, benchmark)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "profile",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Perfil",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\"}, profile)",
+              "refId": "Prometheus-profile"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\"}, profile)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "cores",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Núcleos",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, cores)",
+              "refId": "Prometheus-cores"
+            }
+          },
+          "regex": "",
+          "sort": "numericalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, cores)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "threads",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Hilos",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\"}, threads)",
+              "refId": "Prometheus-threads"
+            }
+          },
+          "regex": "",
+          "sort": "numericalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\"}, threads)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "language",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Lenguaje",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\"}, language)",
+              "refId": "Prometheus-language"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\"}, language)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "node",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Nodo",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\"}, node)",
+              "refId": "Prometheus-node"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\"}, node)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "vampire_device",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Vampire",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\"}, vampire_device)",
+              "refId": "Prometheus-vampire_device"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\"}, vampire_device)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "run_id",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Ejecución",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\"}, run_id)",
+              "refId": "Prometheus-run_id"
+            }
+          },
+          "regex": "",
+          "sort": "alphabeticalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\"}, run_id)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "rep",
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "label": "Repetición",
+          "hide": "dontHide",
+          "refresh": "onTimeRangeChanged",
+          "skipUrlSync": false,
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "${DS_PROMETHEUS}"
+            },
+            "spec": {
+              "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\"}, rep)",
+              "refId": "Prometheus-rep"
+            }
+          },
+          "regex": "",
+          "sort": "numericalAsc",
+          "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",language=~\"$language\",node=~\"$node\"}, rep)",
+          "options": [],
+          "multi": true,
+          "includeAll": true,
+          "allowCustomValue": true
+        }
+      }
+    ],
+    "description": "Resumen científico de ejecuciones HPC comparando medida interna RAPL y medida externa Vampire mediante métricas agregadas de Prometheus."
+  }
+}

@@ -1,0 +1,37 @@
+\chapter{Configuración de la campaña principal}
+\label{anexo:campania}
+
+La configuración completa se encuentra en el directorio \path{campaigns}, en el fichero \path{/hpc-tfg-main-campaign.json}. Los parámetros determinantes para el análisis son:
+
+\begin{lstlisting}
+{
+  "campaign_name": "hpc_tfg_main_campaign",
+  "launcher": "slurm",
+  "partition": "guest",
+  "nodelist": "compute-0-4",
+  "duration": 120,
+  "monitoring": {
+    "enabled": true,
+    "publish": {
+      "internal_metrics": true,
+      "external_metrics": true
+    },
+    "grouping": {"mode": "run_id"}
+  },
+  "external_measurement": {
+    "enabled": true,
+    "provider": "vampire"
+  },
+  "languages": ["c"],
+  "benchmarks": [
+    "idle",
+    "memory-stream-hpc",
+    "compute-dgemm-hpc"
+  ],
+  "reps": [1, 2, 3, 4, 5]
+}
+\end{lstlisting}
+
+La configuración completa mantiene fuera de este extracto la URL del servicio y las credenciales. En la campaña final, \texttt{compute-0-4} se asocia con el dispositivo Vampire \texttt{hpm4}; la captura reserva 2~s antes y 15~s después del benchmark y reintenta la descarga si las muestras todavía no cubren la ventana completa. Las métricas internas y externas se publican con agrupación por \texttt{run\_id}.
+
+Los perfiles \texttt{p1}, \texttt{p2}, \texttt{p4}, \texttt{p6}, \texttt{p8} y \texttt{p12} mantienen un hilo por proceso y solicitan, respectivamente, 1, 2, 4, 6, 8 y 12 procesos y CPU. Los tamaños utilizados son 50 millones de elementos por vector en STREAM y matrices de orden 1024 en DGEMM.

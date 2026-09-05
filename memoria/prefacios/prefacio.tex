@@ -1,0 +1,30 @@
+\chapter*{Resumen}
+\addcontentsline{toc}{chapter}{Resumen}
+
+El consumo energético de los sistemas informáticos es un aspecto cada vez más relevante debido al crecimiento de las necesidades de cómputo y a la importancia de utilizar los recursos de forma eficiente y sostenible. En este contexto, este Trabajo Fin de Grado presenta el diseño, desarrollo y validación de un sistema para medir y analizar el consumo energético de los procesadores de un clúster de computadores.
+
+El sistema se ha desarrollado y probado sobre el clúster HPMoon del departamento de Ingeniería de Computadores, Automática y Robótica de la Universidad de Granada. Su funcionamiento permite automatizar lotes de pruebas experimentales en las que se ejecutan diferentes programas de prueba bajo configuraciones controladas de procesador. Durante cada ejecución se recoge una medida interna del consumo energético mediante Intel RAPL, una tecnología integrada en determinados procesadores Intel, y una medida externa mediante Vampire, un vatímetro instalado en los nodos del clúster. De esta forma, se obtiene información tanto sobre la energía asociada al procesador como sobre el consumo eléctrico global del nodo. Los resultados de cada experimento se almacenan junto con la información necesaria para identificar y reproducir las condiciones en las que se realizó. Además, el sistema incorpora herramientas de monitorización que permiten visualizar las métricas obtenidas.
+
+Para validar la solución se utilizaron tres tipos de carga: una situación de reposo, una carga intensiva sobre el sistema de memoria basada en STREAM y una carga intensiva de cálculo basada en la operación matricial DGEMM. Los experimentos se realizaron utilizando diferentes cantidades de núcleos de CPU, desde 1 hasta 12, con cinco repeticiones por configuración activa y una duración aproximada de 120 segundos por ejecución.
+
+La campaña final estuvo formada por 61 ejecuciones válidas. Los resultados obtenidos permiten distinguir el comportamiento energético de las distintas cargas y muestran una baja variabilidad entre repeticiones realizadas en las mismas condiciones. También se observa que el aumento de los recursos utilizados produce cambios medibles en la potencia y en la energía consumida, aunque la evolución es diferente para las cargas de memoria y de cálculo.
+
+La medida externa proporcionada por Vampire fue superior a la registrada mediante RAPL en todas las configuraciones analizadas, un comportamiento esperable dado que ambas herramientas miden partes diferentes del sistema. Sin embargo, las dos fuentes respondieron de forma coherente a los cambios de carga. En conjunto, los resultados muestran que el sistema desarrollado permite realizar experimentos energéticos de forma automatizada, reproducible y trazable, proporcionando una base para estudiar la relación entre rendimiento y consumo energético en infraestructuras de cómputo.
+
+\textbf{Palabras clave:} eficiencia energética, consumo energético, Intel RAPL, Vampire, HPC, SLURM, monitorización, reproducibilidad.
+
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+The energy consumption of computing systems is becoming increasingly relevant due to the growth in computational demand and the importance of using resources efficiently and sustainably. In this context, this Bachelor's Thesis presents the design, development and validation of a system for measuring and analysing the energy consumption of processors in a computing cluster.
+
+The system has been developed and tested on the HPMoon cluster at the University of Granada. Its operation makes it possible to automate batches of experimental tests in which different benchmark programs are executed under controlled processor configurations. During each execution, an internal energy measurement is collected using Intel RAPL, a technology integrated into certain Intel processors, together with an external measurement obtained through Vampire, a power meter installed on the cluster nodes. This provides information both on the energy associated with the processor and on the overall electrical consumption of the node. The results of each experiment are stored together with the information required to identify and reproduce the conditions under which it was performed. In addition, the system incorporates monitoring tools that allow the collected metrics to be visualised.
+
+To validate the solution, three types of workload were used: an idle state, a memory-intensive workload based on STREAM, and a compute-intensive workload based on the DGEMM matrix operation. The experiments were carried out using different numbers of CPU cores, ranging from 1 to 12, with five repetitions for each active configuration and an approximate duration of 120 seconds per execution.
+
+The final campaign consisted of 61 valid executions. The results obtained make it possible to distinguish the energy behaviour of the different workloads and show low variability between repetitions performed under the same conditions. It is also observed that increasing the amount of computational resources produces measurable changes in power and energy consumption, although the behaviour differs between memory-intensive and compute-intensive workloads.
+
+The external measurements provided by Vampire were higher than those recorded through RAPL for all analysed configurations, which is an expected result because the two tools measure different parts of the system. Nevertheless, both sources responded consistently to changes in workload. Overall, the results show that the developed system enables energy experiments to be carried out in an automated, reproducible and traceable manner, providing a basis for studying the relationship between performance and energy consumption in computing infrastructures.
+
+\textbf{Keywords:} energy efficiency, energy consumption, Intel RAPL, Vampire, HPC, SLURM, monitoring, reproducibility.

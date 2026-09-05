@@ -1,0 +1,30 @@
+{
+  "archive": "analysis/capitulo6/datasets/hpc_tfg_main_campaign-20260723.tar.gz",
+  "run_prefix": "20260723_",
+  "runs": 61,
+  "valid_runs": 61,
+  "benchmarks": {
+    "idle": 1,
+    "memory-stream-hpc": 30,
+    "compute-dgemm-hpc": 30
+  },
+  "nodes": {
+    "compute-0-4": 61
+  },
+  "devices": {
+    "hpm4": 61
+  },
+  "rapl_files": 61,
+  "vampire_files": 61,
+  "payloads": 61,
+  "external_measurements_used": true,
+  "system_info_files": [
+    "collection-date.txt",
+    "git-commit.txt",
+    "git-status.txt",
+    "hpc-tfg-main-campaign.json",
+    "lscpu-compute-0-4.txt",
+    "rapl-domains-compute-0-4.txt",
+    "scontrol-compute-0-4.txt"
+  ]
+}

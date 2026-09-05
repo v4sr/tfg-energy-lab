@@ -1,0 +1,34 @@
+\chapter{Conjunto de datos y análisis}
+\label{anexo:dataset}
+
+Este anexo describe cómo se organizan los datos obtenidos durante las campañas experimentales y el procedimiento utilizado para generar los resultados presentados en el capítulo~\ref{chap:validacion-experimental}. El objetivo es que las métricas mostradas en la memoria puedan relacionarse con las ejecuciones que las generaron y, cuando sea necesario, volver a calcularse a partir de las muestras originales.
+
+Cada campaña genera distintos tipos de ficheros. El archivo \texttt{summary.csv} contiene un resumen de las principales métricas de cada ejecución, como la energía consumida, la potencia media, la potencia máxima o la duración. De forma complementaria, cada ejecución dispone de un documento JSON almacenado en \texttt{raw/}, donde se conserva información sobre su configuración y estado.
+
+Las muestras energéticas originales se almacenan por separado. Las lecturas obtenidas mediante RAPL se encuentran en \texttt{samples/rapl/}, mientras que las medidas externas proporcionadas por Vampire se guardan en \texttt{samples/vampire/}. También se conservan los ficheros de \emph{log} generados durante la ejecución, que permiten consultar posibles avisos o errores.
+
+Todos estos elementos se relacionan mediante el identificador único por ejecución \texttt{run\_id}. De esta forma, a partir de una ejecución concreta es posible localizar sus muestras energéticas, su configuración, sus resultados y sus registros asociados. Entre la información almacenada se encuentran la campaña, el programa de referencia, el perfil utilizado, el número de CPU solicitado, la repetición, el nodo de ejecución, el estado registrado por SLURM, la duración, el número de muestras, las métricas energéticas y el dispositivo Vampire asociado a las medida externas y el estado de estas.
+
+Para obtener los resultados utilizados en el capítulo~\ref{chap:validacion-experimental} no se emplean automáticamente todas las ejecuciones almacenadas. Se seleccionan únicamente aquellas pertenecientes a la campaña \texttt{hpc\_tfg\_main\_campaign} realizada el 23 de julio, identificadas mediante el prefijo \texttt{20260723\_}. Esta selección evita mezclar los resultados definitivos con campañas preliminares realizadas durante el desarrollo y validación del sistema.
+
+Además de pertenecer a la campaña adecuada, cada ejecución debe cumplir una serie de condiciones antes de incorporarse al análisis. Se comprueba que el trabajo haya finalizado correctamente en SLURM, que se haya ejecutado sobre el nodo \texttt{compute-0-4}, que el dispositivo externo utilizado sea \texttt{hpm4} y que los ficheros esperados estén disponibles. También se verifica que las métricas contengan valores numéricos válidos, que las muestras de Vampire cubran correctamente la ventana temporal de ejecución y que los valores agregados puedan reproducirse a partir de las muestras originales.
+
+Tras aplicar estos controles, el conjunto de datos utilizado en el análisis está formado por 61 ejecuciones válidas: una correspondiente a Idle, 30 a STREAM y 30 a DGEMM. En las cargas activas, estas ejecuciones corresponden a seis perfiles diferentes y cinco repeticiones por perfil.
+
+El análisis de estos datos se automatiza mediante un rutina desarrollada específicamente para este capítulo. Desde la raíz del repositorio puede ejecutarse mediante:
+
+\begin{lstlisting}[style=Consola]
+python3 scripts/analyze_chapter6_20260723.py
+\end{lstlisting}
+
+El script trabaja sobre una copia cerrada de la campaña definitiva almacenada en:
+
+\begin{lstlisting}[style=Consola]
+analysis/capitulo6/datasets/hpc_tfg_main_campaign-20260723.tar.gz
+\end{lstlisting}
+
+Este archivo reúne los datos utilizados para generar los resultados de la memoria y permite mantener constante el conjunto analizado aunque posteriormente se realicen nuevas campañas.
+
+Durante el análisis de la rutina, las métricas energéticas no se toman únicamente de los valores resumidos previamente calculados. Este programa vuelve a procesar las muestras originales de RAPL y Vampire y recalcula las magnitudes utilizadas en el capítulo. De esta forma es posible comprobar que los valores agregados almacenados durante la ejecución coinciden con los obtenidos posteriormente a partir de los datos brutos.
+
+A partir de este proceso se generan las tablas, figuras y controles de calidad utilizados en el capítulo~\ref{chap:validacion-experimental}. Los ficheros originales de las ejecuciones no se modifican durante el análisis; los resultados derivados se generan en archivos independientes. Esta separación permite conservar los datos experimentales originales y repetir el análisis aplicando el mismo procedimiento.

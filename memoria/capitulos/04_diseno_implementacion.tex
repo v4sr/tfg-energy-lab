@@ -1,0 +1,433 @@
+\chapter{Diseño e implementación del sistema}
+\label{chap:implementacion}
+
+\section{Requisitos del sistema}
+\label{sec:requisitos-sistema}
+
+Antes de definir la arquitectura se identificaron las capacidades que debía proporcionar la plataforma. Los requisitos funcionales describen las operaciones que debe realizar el sistema, mientras que los requisitos no funcionales establecen las propiedades que debe mantener durante la ejecución de las campañas. Esta separación permite justificar posteriormente la organización de los componentes sin confundir las necesidades del sistema con las tecnologías utilizadas para satisfacerlas.
+
+\subsection{Requisitos funcionales}
+
+\paragraph{RF1. Configuración de campañas.}
+El sistema debe permitir definir campañas mediante los programas de prueba, los recursos solicitados, los parámetros de ejecución y el número de repeticiones de cada configuración.
+
+\paragraph{RF2. Automatización de las ejecuciones.}
+El sistema debe generar las combinaciones definidas en una campaña y ejecutar cada una de ellas mediante el gestor de trabajos disponible en HPMoon, reduciendo la intervención manual durante el proceso.
+
+\paragraph{RF3. Adquisición energética.}
+El sistema debe recoger periódicamente las medidas energéticas internas y externas asociadas a cada ejecución y delimitar su adquisición de acuerdo con el intervalo de ejecución del programa de referencia.
+
+\paragraph{RF4. Almacenamiento de resultados.}
+El sistema debe conservar las muestras originales, los resultados calculados, la configuración utilizada, los metadatos de ejecución, el estado final y los posibles errores producidos.
+
+\paragraph{RF5. Monitorización de las campañas.}
+El sistema debe publicar información agregada que permita consultar el desarrollo de las campañas y visualizar sus principales métricas sin sustituir los datos originales almacenados.
+
+\paragraph{RF6. Consulta y análisis.}
+El sistema debe permitir recuperar los datos conservados, recalcular las métricas derivadas y comparar los resultados de diferentes programas de prueba, configuraciones y repeticiones.
+
+\subsection{Requisitos no funcionales}
+
+\paragraph{RNF1. Trazabilidad.}
+Cada ejecución debe poder identificarse de forma inequívoca y relacionarse con la campaña que la generó, su configuración, el trabajo enviado al planificador, las muestras energéticas, los resultados calculados, los registros de ejecución y su estado final. El sistema debe conservar también las repeticiones como ejecuciones independientes y permitir reconstruir posteriormente el origen de cada resultado.
+
+\paragraph{RNF2. Homogeneidad experimental.}
+Las ejecuciones pertenecientes a una misma campaña deben seguir un procedimiento común de preparación, adquisición, almacenamiento y finalización, de manera que sus resultados puedan compararse bajo condiciones controladas.
+
+\paragraph{RNF3. Gestión de fallos.}
+El sistema debe registrar las ejecuciones fallidas o incompletas, conservar la información necesaria para diagnosticarlas y garantizar la finalización de los mecanismos de adquisición iniciados.
+
+\paragraph{RNF4. Modularidad y extensibilidad.}
+La configuración de campañas, la ejecución, la adquisición, el almacenamiento, la monitorización y el análisis deben mantenerse como responsabilidades diferenciadas. Esta separación debe permitir incorporar nuevos programas de prueba o mecanismos de medida sin rediseñar por completo la plataforma.
+
+\section{Arquitectura general}
+\label{sec:arquitectura-implementacion}
+
+La arquitectura se define a partir de los requisitos de la Sección~\ref{sec:requisitos-sistema} y de las restricciones del entorno HPMoon descritas en el capítulo~\ref{chap:entorno}. A partir de estos elementos se establece la organización funcional de la plataforma y, posteriormente, su correspondencia con los componentes utilizados en la implementación.
+
+Desde el punto de vista arquitectónico, la plataforma se divide en varios componentes funcionales. El componente de configuración describe las campañas y sus parámetros; el orquestador transforma cada campaña en ejecuciones individuales; el componente de ejecución solicita los recursos necesarios y controla el programa de referencia; el componente de adquisición recoge las medidas energéticas; el componente de persistencia conserva los resultados y su contexto; el componente de monitorización publica información agregada para facilitar la supervisión; y el componente de consulta y análisis permite examinar los resultados almacenados y obtener métricas derivadas. Esta separación define las responsabilidades del sistema sin depender todavía de tecnologías concretas.
+
+La figura~\ref{fig:arquitectura-general} representa la relación lógica entre los componentes principales, sin pretender describir una distribución física concreta.
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c@{}c@{}c@{}c@{}c}
+\diagramnodeaccent[0.209\textwidth]{Configuración\\de campañas} & \diagramarrow &
+\diagramnode[0.209\textwidth]{Orquestación\\de ejecuciones} & \diagramarrow &
+\diagramnodeaccent[0.209\textwidth]{Ejecución\\controlada} \\
+&&&& \diagramdown \\
+\diagramnode[0.209\textwidth]{Consulta y\\supervisión} & \diagramleftarrow &
+\diagramnode[0.209\textwidth]{Persistencia y\\publicación} & \diagramleftarrow &
+\diagramnode[0.209\textwidth]{Adquisición\\de medidas}
+\end{tabular}
+\caption{Arquitectura funcional de la plataforma experimental.}
+\label{fig:arquitectura-general}
+\end{figure}
+
+La figura~\ref{fig:arquitectura-general} muestra el recorrido de la información desde la definición de una campaña hasta la conservación y consulta de los resultados. La configuración queda separada de la ejecución. Esta organización permite modificar un componente sin alterar necesariamente las responsabilidades del resto.
+
+\subsection{Correspondencia con la implementación}
+\label{subsec:correspondencia-implementacion}
+
+Los componentes funcionales anteriores se materializan mediante los programas y servicios descritos a continuación.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Correspondencia entre los componentes arquitectónicos y su implementación.}
+    \label{tab:correspondencia-arquitectura-implementacion}
+    \begin{tabular}{p{0.25\textwidth}p{0.28\textwidth}p{0.37\textwidth}}
+        \hline
+        Componente arquitectónico & Implementación principal & Responsabilidad \\
+        \hline
+        Configuración de campañas &
+        Ficheros de configuración &
+        Definir programas de referencia, perfiles, parámetros y repeticiones. \\
+
+        Orquestación &
+        \texttt{run\_matrix.py} &
+        Generar las combinaciones de la campaña y coordinar cada ejecución. \\
+
+        Ejecución controlada &
+        \path{run_experiment.py} y \path{slurm/templates/benchmark.sbatch} &
+        Preparar la ejecución, solicitar los recursos y ejecutar la carga mediante SLURM. \\
+
+        Adquisición interna &
+        \texttt{rapl\_sampler.py} &
+        Leer periódicamente los contadores RAPL y conservar las muestras energéticas. \\
+
+        Adquisición externa &
+        \path{vampire_integration.py} &
+        Iniciar, detener y recuperar las capturas realizadas mediante Vampire. \\
+
+        Persistencia &
+        \texttt{run\_experiment.py} y estructura de resultados &
+        Conservar CSV, JSON, estados, registros y metadatos asociados al \texttt{run\_id}. \\
+
+        Monitorización &
+        \texttt{monitoring.py}, Pushgateway, Prometheus y Grafana &
+        Publicar, recopilar, consultar y visualizar las métricas agregadas. \\
+
+        Análisis &
+        Scripts de los directorios \path{scripts/} y \path{analysis/} &
+        Validar los resultados y generar tablas y figuras reproducibles. \\
+        \hline
+    \end{tabular}
+\end{table}
+
+La correspondencia mostrada en la Tabla~\ref{tab:correspondencia-arquitectura-implementacion} no implica una relación uno a uno entre los componentes arquitectónicos y los ficheros de la implementación. Un mismo programa puede asumir responsabilidades pertenecientes a varios componentes funcionales. En particular, \path{run_experiment.py} participa tanto en la coordinación de una ejecución individual como en la construcción y persistencia de sus resultados, mientras que la plantilla \path{slurm/templates/benchmark.sbatch} materializa la ejecución dentro del nodo asignado.
+
+La plataforma se implementa mediante componentes con funciones diferenciadas. El programa \path{run_matrix.py} lee la campaña y genera las distintas combinaciones de programa de referencia, perfil y repetición; \path{run_experiment.py} crea el programa, envía el trabajo, consulta SLURM y almacena los resultados obtenidos; \path{rapl_sampler.py} adquiere la serie energética; y \path{monitoring.py} construye y publica las medidas agregadas. La plantilla \path{slurm/templates/benchmark.sbatch} coordina, dentro del nodo asignado, la ejecución del muestreador y del programa de referencia. Esta separación permite modificar y comprobar cada componente de forma independiente, sin necesidad de alterar el resto del proceso experimental.
+
+Las secciones siguientes desarrollan el diseño siguiendo el recorrido de los datos a través de estos componentes. La Sección~\ref{sec:pipeline-implementacion} describe la orquestación y la ejecución controlada; la Sección~\ref{sec:adquisicion-implementacion} presenta la adquisición energética; la Sección~\ref{sec:almacenamiento-implementacion} explica la persistencia y el tratamiento de los resultados; y la Sección~\ref{sec:monitorizacion-implementacion} describe su publicación, supervisión y consulta.
+
+La plataforma permite incorporar programas de prueba con parámetros y formas de ejecución diferentes sin modificar el procedimiento general de adquisición y almacenamiento. Cada programa se integra como una carga configurable, mientras que el orquestador mantiene un flujo común para preparar la ejecución, recoger las medidas y conservar los resultados. Los programas concretos empleados en la campaña y los criterios seguidos para seleccionarlos se presentan en la Sección~\ref{sec:benchmarks-diseno-experimental}.
+
+Como respuesta al requisito de trazabilidad definido en la Sección~\ref{sec:requisitos-sistema}, los componentes de la plataforma conservan un identificador común durante la configuración, ejecución, adquisición, almacenamiento y publicación de los resultados. La implementación concreta de este mecanismo utiliza el identificador \texttt{run\_id}, descrito en el cauce experimental.
+
+La automatización se ha dividido en dos niveles. La rutina \texttt{run\_matrix.py} interpreta la configuración de la campaña y genera las distintas combinaciones de programa de referencia, perfil de ejecución y repetición que deben realizarse. Por su parte, \texttt{run\_experiment.py} gestiona cada una de esas ejecuciones concretas: prepara los parámetros necesarios, genera y envía el trabajo a SLURM, inicia los mecanismos de medida, ejecuta el programa de referencia y recoge los resultados obtenidos. Mantener ambas funciones separadas permite repetir de forma aislada una configuración concreta sin necesidad de volver a lanzar toda la campaña y facilita localizar el origen de una incidencia, diferenciando entre problemas en la generación de las configuraciones, en la ejecución mediante SLURM o en la adquisición de las medidas. Además, esta separación permite comprobar y modificar cada parte del proceso de forma independiente.
+
+\section{Diseño del cauce experimental}
+\label{sec:pipeline-implementacion}
+
+Como se describe en la Sección~\ref{sec:slurm-entorno}, HPMoon utiliza SLURM para gestionar la ejecución de trabajos y la asignación de recursos. El sistema desarrollado se integra con este mecanismo para transformar la configuración de una campaña en un conjunto de ejecuciones controladas.
+
+El cauce experimental define la secuencia de operaciones que transforma una descripción de campaña en un conjunto de datos almacenados. Este flujo constituye el núcleo operativo de la plataforma. A partir de la configuración de la campaña, el sistema genera las ejecuciones necesarias, prepara sus parámetros, envía los trabajos a SLURM y, una vez asignados los recursos, inicia la adquisición energética y ejecuta el programa de referencia. Al finalizar cada prueba, se detienen las capturas y se almacenan las métricas, los resultados y los metadatos asociados a la ejecución.
+
+El proceso comienza con la definición de una campaña experimental. Una campaña agrupa un conjunto de ejecuciones relacionadas por un objetivo común. En ella se especifican los programas de pruebas que se van a ejecutar y los parámetros asociados a cada configuración. Esta descripción actúa como entrada formal del sistema y permite evitar que los experimentos dependan de órdenes manuales no documentadas.
+
+A partir de la campaña, la plataforma genera las unidades de ejecución que serán enviadas a SLURM. Cada unidad contiene la información necesaria para solicitar recursos y ejecutar una prueba concreta. En esta fase se incorporan los parámetros de los programas de referencia, la duración prevista, el número de repeticiones y cualquier configuración adicional declarada. La generación automática de estas ejecuciones a partir de la configuración de la campaña reduce la intervención manual y permite aplicar un procedimiento común a todas ellas.
+
+Una vez preparados los trabajos, se envían al planificador SLURM y quedan pendientes hasta que están disponibles los recursos solicitados. La plataforma conserva el identificador único asignado a cada ejecución (\texttt{run\_id}), ya que permite relacionar la ejecución realizada en el clúster con los resultados almacenados. Esta asociación resulta especialmente importante en campañas con diferentes cargas, configuraciones y repeticiones.
+
+Cuando SLURM inicia un trabajo, el programa prepara el entorno e inicia \texttt{rapl\_sampler.py} como proceso auxiliar. Este muestreador consulta periódicamente los contadores energéticos RAPL expuestos por el sistema, calcula los incrementos de energía entre lecturas consecutivas y obtiene la potencia correspondiente a cada intervalo, almacenando las muestras en un fichero CSV. A continuación se lanza el programa de referencia mediante \texttt{srun}. Al finalizar la ejecución de la carga se detiene el muestreador, espera su cierre y deja disponible el fichero CSV temporal. El orquestador consulta \texttt{sacct}, una herramienta de SLURM que permite obtener información sobre los trabajos ejecutados, como su estado, duración, nodo de ejecución y código de salida. Esta información se combina con la salida del programa de referencia y con los datos obtenidos mediante RAPL para generar el resumen y el archivo JSON asociado a cada ejecución. Finalmente, se prepara el conjunto de métricas utilizado por el sistema de monitorización.
+
+La figura~\ref{fig:pipeline-experimental} resume el flujo seguido desde la definición
+de una campaña hasta el almacenamiento de los resultados obtenidos.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{tabular}{c@{\hspace{0.20cm}}c@{\hspace{0.20cm}}c@{\hspace{0.20cm}}c@{\hspace{0.20cm}}c}
+
+\diagramnodeaccent[0.26\textwidth]{%
+\texttt{run\_matrix.py}\\
+Generar las configuraciones\\}
+&
+\diagramarrow
+&
+\diagramnodeaccent[0.26\textwidth]{%
+\texttt{run\_experiment.py}\\
+Preparar cada\\
+ejecución}
+&
+\diagramarrow
+&
+\diagramnodeaccent[0.26\textwidth]{%
+\texttt{sbatch}\\
+Enviar el trabajo\\
+a SLURM}
+\\[4pt]
+
+&&&&
+\diagramdown
+\\[4pt]
+
+\diagramnodeaccent[0.26\textwidth]{%
+Resultados\\
+Guardar CSV, JSON\\
+y métricas}
+&
+\diagramleftarrow
+&
+\diagramnodeaccent[0.26\textwidth]{%
+Finalización\\
+Detener el muestreo\\
+y agregar resultados}
+&
+\diagramleftarrow
+&
+\diagramnodeaccent[0.26\textwidth]{%
+Ejecución y medida\\
+Ejecutar la carga\\
+y muestrear RAPL}
+
+\end{tabular}
+
+\caption{Flujo automatizado de una ejecución experimental, desde la generación
+de las configuraciones de la campaña hasta el almacenamiento de los resultados.}
+\label{fig:pipeline-experimental}
+
+\end{figure}
+
+
+La figura \ref{fig:pipeline-experimental} resume la idea de que la toma de medidas energéticas se lleva a cabo solamente en el intervalo de ejecución del programa de referencia. Esta delimitación resulta esencial para que la energía calculada se corresponda de la forma más precisa posible con la carga evaluada. Aunque en un sistema real pueden existir procesos de fondo u otra actividad del sistema operativo, el uso de un procedimiento automatizado permite aplicar el mismo criterio de medición en todas las ejecuciones.
+
+El flujo se ha diseñado para poder ejecutar distintos programas de prueba sin modificar el procedimiento general de medida. En Idle se mantiene un intervalo controlado sin una carga computacional intensiva; en STREAM se ejecuta la carga orientada a memoria con los parámetros definidos en la campaña; y en DGEMM se ejecuta la carga de cálculo matricial correspondiente. Aunque cada programa requiere una forma de ejecución distinta, el proceso de adquisición y almacenamiento es común: se realiza el muestreo energético, se recogen los resultados y se generan los ficheros asociados a cada ejecución siguiendo el mismo procedimiento.
+
+Otro aspecto relevante del cauce es la gestión de las repeticiones. Una misma configuración puede ejecutarse varias veces para poder observar cómo cambian las medidas. La plataforma distingue cada repetición mediante identificadores o metadatos específicos, evitando sobrescribir resultados y permitiendo agrupar posteriormente las ejecuciones equivalentes. Esta organización resulta imprescindible para el análisis posterior de los datos.
+
+Para garantizar la trazabilidad de cada ejecución, el identificador \texttt{run\_id} combina una marca temporal UTC con la etiqueta del programa de referencia, el perfil y la repetición. El mismo valor se utiliza en el trabajo generado, los ficheros de sincronización, los CSV, el JSON, los \emph{logs} y la agrupación de Pushgateway. De este modo, todos los datos asociados a una ejecución pueden relacionarse de forma inequívoca durante el análisis y el diagnóstico de incidencias. Se valoró conservar únicamente el último resultado de cada combinación, lo que habría reducido el número de series almacenadas, pero habría impedido distinguir repeticiones y consultar ejecuciones anteriores. Por este motivo, se optó por mantener una agrupación independiente por ejecución y realizar posteriormente una limpieza selectiva, priorizando la trazabilidad de los experimentos.
+
+El diseño también contempla la posibilidad de que algunas ejecuciones no finalicen correctamente. En un entorno gestionado por SLURM pueden producirse cancelaciones, errores durante la ejecución, problemas de acceso a medidas o salidas incompletas. El cauce debe registrar esta situación de forma ordenada, diferenciando entre resultados válidos y ejecuciones fallidas. Esta información no constituye un resultado experimental, pero forma parte de la integridad del proceso.
+
+\section{Sistema de adquisición de datos}
+\label{sec:adquisicion-implementacion}
+
+\decisionbox{Decisión de diseño: uso de Intel RAPL como fuente de medida interna.}{%
+El sistema necesitaba obtener medidas energéticas asociadas a cada ejecución de forma periódica y automatizable. Los procesadores disponibles en HPMoon exponen los contadores Intel RAPL mediante la interfaz \emph{powercap} de Linux, lo que permite realizar las lecturas desde el propio nodo de cómputo y coordinarlas con los trabajos ejecutados mediante SLURM. Por este motivo, se seleccionó RAPL como fuente principal para la medida interna del consumo asociado a los procesadores. Esta selección permite conservar series temporales sin instalar instrumentación adicional, aunque sus valores se limitan a los dominios energéticos expuestos por el procesador y no representan el consumo eléctrico completo del nodo. La medida externa proporcionada por Vampire se utiliza de forma complementaria para observar ese ámbito más amplio.
+}
+
+El sistema de adquisición obtiene las medidas energéticas asociadas a cada ejecución mediante el programa \texttt{rapl\_sampler.py}. Esta rutina accede a la interfaz \texttt{powercap} de Linux, que expone los dominios energéticos proporcionados por RAPL a través de la ruta \path{/sys/devices/virtual/powercap/intel-rapl} \parencite{linuxPowercap}. Para cada dominio el fichero \texttt{energy\_uj} contiene la energía acumulada expresada en microjulios, mientras que \texttt{max\_energy\_range\_uj} indica el valor máximo representable por el contador.
+
+La estructura se organiza en diferentes dominios de medida, como \texttt{package}, \texttt{core} o \texttt{dram}, dependiendo de las capacidades expuestas por el procesador. En la campaña final, el muestreador utiliza únicamente los dominios raíz \texttt{package}, correspondientes a los procesadores físicos, y suma los incrementos energéticos obtenidos en ambos. Los dominios adicionales, como \texttt{core} o \texttt{dram}, se conservan como información disponible, pero no se incorporan al valor utilizado en el análisis, ya que la medida interna definida para este trabajo se basa exclusivamente en los dominios \texttt{package}.
+
+\decisionbox{Decisión de diseño: selección de los dominios RAPL.}{%
+RAPL expone diferentes dominios energéticos asociados a distintas partes del procesador. En este trabajo se utiliza el dominio \texttt{package} de cada procesador físico como referencia para calcular la energía interna de la ejecución. Aunque la interfaz también puede mostrar otros dominios, como \texttt{core} o \texttt{dram}, estos no se suman al valor principal utilizado en el análisis. De esta forma, la medida interna se mantiene definida de manera homogénea para todas las ejecuciones y se evita combinar contadores cuyo alcance puede no ser independiente. El muestreador permite utilizar otros modos de cálculo, pero la campaña analizada emplea exclusivamente los dominios \texttt{package}.
+}
+
+La adquisición energética mediante RAPL se realiza dentro del propio trabajo lanzado por SLURM y, por tanto, en el mismo nodo en el que se ejecuta la carga. Esta elección permite que las lecturas correspondan a los procesadores que están siendo utilizados durante el experimento, ya que los contadores RAPL son locales al sistema en el que se encuentran dichos procesadores. Por este motivo, cada ejecución incluye tanto el programa de referencia como el proceso encargado de recoger las medidas energéticas.
+
+En cada iteración se registra el instante de medida en tiempo universal coordinado (\textit{Coordinated Universal Time}, UTC), el intervalo realmente transcurrido, el incremento energético expresado en julios, la potencia obtenida como \(\Delta E / \Delta t\) y la energía acumulada.
+
+El contador \texttt{energy\_uj} tiene un rango finito. Cuando alcanza el valor indicado por \texttt{max\_energy\_range\_uj}, vuelve a comenzar desde un valor inferior, fenómeno conocido como \emph{wraparound}. En esta situación, una resta directa entre lecturas produciría incorrectamente un incremento negativo. El muestreador detecta que la nueva lectura es inferior a la anterior y utiliza el rango máximo para calcular el incremento energético correspondiente al intervalo.
+
+\texttt{run\_experiment.py} utiliza como energía total de la ejecución el último valor acumulado, calcula \texttt{avg\_power\_w} como la media aritmética de las potencias obtenidas en cada intervalo y \texttt{peak\_power\_w} como el mayor valor registrado.
+
+La figura~\ref{fig:adquisicion-rapl} muestra el esquema de adquisición y su delimitación temporal.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{tabular}{c@{\hspace{0.25cm}}c@{\hspace{0.25cm}}c@{\hspace{0.25cm}}c@{\hspace{0.25cm}}c}
+
+\diagramnode[0.22\textwidth]{%
+Seleccionar\\
+\texttt{package}}
+&
+\diagramarrow
+&
+\diagramnode[0.22\textwidth]{%
+Leer energía\\
+y tiempo\\
+\(E_i,t_i\)}
+&
+\diagramarrow
+&
+\diagramnodeaccent[0.22\textwidth]{%
+Calcular incremento\\
+\(\Delta E_i,\Delta t_i\)}
+\\[8pt]
+
+&&&&
+\diagramdown
+\\[8pt]
+
+\diagramnode[0.22\textwidth]{%
+Acumular\\
+energía total}
+&
+\diagramleftarrow
+&
+\diagramnode[0.22\textwidth]{%
+Actualizar potencia\\
+media y máxima}
+&
+\diagramleftarrow
+&
+\diagramnode[0.22\textwidth]{%
+Calcular potencia\\
+\(P_i=\Delta E_i/\Delta t_i\)}
+
+\end{tabular}
+
+\caption{Secuencia de adquisición y cálculo de métricas energéticas a partir de los contadores Intel RAPL.}
+\label{fig:adquisicion-rapl}
+\end{figure}
+
+La figura \ref{fig:adquisicion-rapl} refleja que una lectura aislada no representa el consumo de una ejecución. Son los incrementos entre muestras y su acumulación durante el intervalo los que permiten estimar la energía y la potencia.
+
+El sistema de adquisición debe tener en cuenta que las partes o componentes que RAPL puede medir dependen del modelo de procesador y de la configuración del sistema. Por tanto, la plataforma no debe asumir que se miden partes no consideradas, ni interpretar valores no expuestos por el entorno. En términos de diseño,  durante la adquisición se debe consultar que componentes del procesador se están midiendo y registrar aquellos que sean pertinentes para el estudio de la CPU. De este modo, el sistema puede adaptarse a procesadores que expongan distintos dominios RAPL sin asumir una configuración de hardware concreta.
+
+\subsection{Integración de la medida externa con Vampire}
+\label{subsec:vampire-implementacion}
+
+La plataforma incorpora además un subsistema de medición externo con el vatímetro Vampire. La configuración de campaña lo activa y define la correspondencia entre el nodo de cómputo y el dispositivo de medida.
+
+El módulo \texttt{vampire\_integration.py} coordina el inicio y la detención de la captura, solicita el fichero CSV con la orden \texttt{vampire.py get}, ajusta las muestras a la ventana del programa de referencia y calcula la energía, potencia media, potencia máxima, duración y número de muestras. Los instantes de inicio y fin se intercambian mediante ficheros de sincronización asociados al mismo \texttt{run\_id}, un identificador único asignado a cada ejecución que permite relacionar las medidas, los resultados y los metadatos generados durante la prueba.
+
+La coordinación entre la ejecución del trabajo en SLURM y la medición externa mediante Vampire se realiza mediante varios ficheros de sincronización. Cuando el trabajo comienza, se genera \texttt{job\_started.json}, que indica que la ejecución ha sido iniciada y proporciona la información necesaria para preparar la captura externa. Antes de lanzar el programa de referencia, el trabajo espera la señal \texttt{vampire\_ready}, que confirma que Vampire está preparado para comenzar la medición. Al finalizar la carga se genera \texttt{benchmark\_finished.json}, donde se registran los instantes exactos de inicio y fin del programa de referencia para delimitar posteriormente la ventana de medida.
+
+Estos ficheros se escriben de forma atómica, de modo que el proceso que los consulta solo pueda acceder a ellos cuando su contenido esté completamente generado. Si Vampire no puede iniciar correctamente la captura, el sistema contempla dos comportamientos: cancelar la ejecución o continuar únicamente con la medida interna proporcionada por RAPL. De esta forma, un fallo del dispositivo externo no deja el trabajo bloqueado de manera indefinida.
+
+\decisionbox{Incidencia de adquisición: una descarga correcta podía estar incompleta.}{%
+Durante las primeras pruebas se observó que la orden
+\texttt{vampire.py get}, utilizada para recuperar las muestras registradas por
+Vampire, podía finalizar correctamente aunque el fichero obtenido no contuviera
+todas las medidas correspondientes a la ejecución del programa de referencia.
+
+Esta situación resultaba difícil de detectar utilizando únicamente los valores
+agregados, ya que la energía y la potencia media calculadas sobre las muestras
+disponibles podían presentar valores aparentemente coherentes aunque faltara una
+parte de la ventana de ejecución.
+
+Para evitar que una captura incompleta se considerara válida, se modificó el
+procedimiento de adquisición. El sistema comprueba que existan muestras de
+Vampire anteriores al inicio y posteriores al final del programa de referencia,
+de forma que quede cubierta toda la ventana temporal que se desea analizar.
+Cuando esta condición no se cumple, la captura se considera incompleta y la
+ejecución no se utiliza en el análisis energético externo.
+}
+
+Una vez iniciado el experimento con el medidor Vampire, la orden \texttt{stop} se ejecuta en un bloque \texttt{finally}. Esta decisión responde al riesgo de dejar una captura abierta si el programa de referencia, la sincronización o el propio orquestador fallan. La descarga y el procesamiento solo se realizan después de una parada correcta; tanto el error principal como un posible error de cierre quedan registrados en el resultado externo.
+
+Los resultados externos se incorporan al mismo resumen agregado y al archivo JSON individual que las métricas obtenidas mediante RAPL. Cuando la captura de Vampire es válida, el módulo \path{monitoring.py} publica también cuatro métricas específicas: la energía total medida externamente, la potencia media, la potencia máxima observada y un indicador del estado de la captura. Internamente, estas métricas se identifican como \path{tfg_external_energy_joules}, \path{tfg_external_average_power_watts}, \path{tfg_external_peak_power_watts} y \path{tfg_external_capture_success}, respectivamente.
+
+Además de la energía, la plataforma registra información temporal. La duración de la prueba permite calcular potencia media y contextualizar la medida. La duración también es útil para detectar ejecuciones anómalas, por ejemplo cuando un programa de referencia finaliza antes de lo esperado o cuando el tiempo observado no se corresponde con la configuración definida. Estas comprobaciones deben entenderse como mecanismos de control de calidad del proceso, no como conclusiones sobre el comportamiento del sistema.
+
+La adquisición energética debe integrarse cuidadosamente con los programas de pruebas. En Idle, el intervalo de medida se corresponde con un periodo de espera o reposo controlado. En STREAM, el intervalo debe abarcar la ejecución de la prueba de memoria. En DGEMM, debe incluir la ejecución de la operación de multiplicación de matrices o del programa que la realiza. En todos los casos, se busca que el intervalo medido incluya la carga relevante y excluya, en la medida de lo posible, tareas auxiliares no representativas.
+
+El diseño contempla también la necesidad de minimizar la intrusión del sistema de medida. Toda instrumentación software supone cierto coste, aunque sea pequeño. Por ello, las lecturas deben realizarse de forma simple y uniforme, evitando incorporar un procesamiento pesado dentro del intervalo medido. El cálculo y almacenamiento posterior de las medidas puede realizarse inmediatamente después de la lectura final, cuando la carga principal ya ha terminado.
+
+La potencia pico requiere una consideración adicional. Si solo se dispone de una lectura inicial y una final de energía, puede calcularse energía total y potencia media, pero no un pico temporal. Para obtener potencia pico es necesario contar con muestras intermedias o con medidas de monitorización que permitan reconstruir los valores máximos durante el intervalo. Por ello, el sistema debe distinguir claramente entre magnitudes calculadas directamente a partir de dos lecturas y magnitudes derivadas del muestreo temporal.
+
+\section{Almacenamiento y tratamiento de datos}
+\label{sec:almacenamiento-implementacion}
+
+El almacenamiento de los resultados se realiza en fichero de tipo CSV y JSON. La elección de estos formatos responde a necesidades complementarias. El formato CSV proporciona una representación tabular sencilla, adecuada para hacer un análisis cuantitativo y un procesamiento posterior. Los ficheros JSON permiten conservar información estructurada y jerárquica, apropiada para describir campañas, configuraciones, parámetros y metadatos.
+
+Cada ejecución experimental genera un conjunto de datos que debe almacenarse de forma trazable. El resultado no se limita a un valor de energía, sino que incluye el contexto necesario para interpretarlo. Entre los metadatos relevantes se encuentran el nombre de la campaña, el programa de referencia ejecutado, los parámetros de configuración, la repetición, el identificador del trabajo de SLURM, la duración y las métricas energéticas calculadas. Esta información permite reconstruir posteriormente las condiciones bajo las que se obtuvo cada medida.
+
+El formato CSV se utiliza para almacenar datos estructurados en filas y columnas con una organización común. Cada fila puede corresponder a una ejecución o a una muestra, según el nivel de detalle almacenado en la plataforma. Las columnas contienen atributos como programa de referencia, configuración, duración, energía consumida, potencia media y otras variables derivadas. Esta estructura resulta conveniente para luego cargar los datos en herramientas de análisis, aplicar filtros, agrupar configuraciones o calcular estadísticas.
+
+El formato JSON se emplea para almacenar la información de forma más estructurada. Una campaña experimental puede contener varios programas de pruebas, múltiples configuraciones y repeticiones. Representar esta información en JSON permite conservar la relación entre elementos sin forzar una estructura plana. Además, JSON es adecuado para registrar configuraciones de entrada y metadatos de salida, lo que facilita auditar el proceso experimental.
+
+La figura~\ref{fig:almacenamiento-datos} representa la forma en la que se almacenan los resultados. 
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c}
+\diagramnodeaccent[0.52\textwidth]{Ejecución identificada por \texttt{run\_id}} \\[3pt]
+\diagramdown \\[3pt]
+\begin{tabular}{c@{\hspace{0.35cm}}c@{\hspace{0.35cm}}c}
+\diagramnode[0.24\textwidth]{Series CSV\\RAPL y Vampire} &
+\diagramnode[0.24\textwidth]{Raw JSON\\contexto completo} &
+\diagramnode[0.24\textwidth]{Logs y\\estados SLURM}
+\end{tabular} \\[3pt]
+\diagramdown \\[3pt]
+\diagramnode[0.52\textwidth]{\texttt{summary.csv}: análisis agregado de campaña}
+\end{tabular}
+\caption{Organización conceptual del almacenamiento de los resultados.}
+\label{fig:almacenamiento-datos}
+\end{figure}
+
+La figura \ref{fig:almacenamiento-datos} muestra que ambos formatos cumplen funciones distintas. El CSV facilita operaciones de análisis sobre conjuntos de ejecuciones, mientras que JSON conserva la descripción completa del contexto experimental. Esta distinción contribuye a evitar ambigüedades cuando se analizan campañas con múltiples parámetros.
+
+El tratamiento de datos posterior se apoya en la consistencia del almacenamiento. Si todas las ejecuciones utilizan los mismos nombres de campos y las mismas unidades, resulta posible automatizar comparaciones entre programas de pruebas o configuraciones. En cambio, si los resultados se almacenan de forma heterogénea, el análisis requiere correcciones manuales que pueden introducir errores. Por ello, la plataforma debe definir un esquema estable para las principales medidas.
+
+La energía se almacena en julios, la duración en segundos y la potencia en vatios. La potencia media y la máxima se obtienen a partir de la serie obtenida con RAPL. Los nombres de las columnas incorporan la magnitud y, en las métricas publicadas, también la unidad.
+
+El tratamiento inicial de los datos puede incluir validaciones básicas. Por ejemplo, puede comprobarse que las métricas numéricas existen, que la duración es positiva, que el identificador de trabajo se ha registrado y que el programa de referencia indicado coincide con la configuración esperada. Estas validaciones no sustituyen al análisis científico, pero ayudan a detectar salidas incompletas o inconsistentes.
+
+La plataforma debe organizar los ficheros de salida de manera que puedan localizarse fácilmente. Una estructura basada en campañas, programas de pruebas y repeticiones facilita navegar por los resultados y evita sobrescrituras accidentales. Además, la conservación de los ficheros originales permite repetir análisis posteriores sin necesidad de volver a ejecutar las pruebas. Esto es especialmente importante en HPC, donde el acceso a recursos puede estar limitado por colas de ejecución o disponibilidad del clúster.
+
+En la implementación, cada campaña dispone de un \texttt{summary.csv}; cada ejecución conserva un JSON en \texttt{raw/}, las series en \texttt{samples/rapl/} y \texttt{samples/vampire/}, y sus \emph{logs} en \texttt{logs/}. Se descartó guardar únicamente el resumen porque habría impedido recalcular agregados y distinguir un error de adquisición de otro de procesamiento. La redundancia controlada entre muestra, resumen y JSON se utiliza como mecanismo de auditoría, no como tres fuentes independientes.
+
+El almacenamiento también debe ser compatible con la evolución del sistema. Si en el futuro se incorporan nuevos programas de pruebas o métricas adicionales, el formato debe permitir ampliar los campos sin invalidar los resultados existentes. JSON resulta especialmente adecuado para esta extensibilidad, mientras que CSV puede mantenerse mediante la adición controlada de columnas.
+
+\section{Visualización y monitorización}
+\label{sec:monitorizacion-implementacion}
+
+Las campañas pueden prolongarse durante varias horas y generar numerosas ejecuciones consecutivas. El sistema necesitaba proporcionar una forma de comprobar a distancia que los trabajos avanzaban, que las métricas se publicaban y que no se habían producido interrupciones, sin utilizar los paneles como sustituto de los resultados almacenados. La solución de monitorización debía, además, ser accesible desde HPMoon mediante una dirección estable y permitir consultar las campañas sin depender de que el equipo de desarrollo permaneciera conectado.
+
+\decisionbox{Decisión de diseño: arquitectura de monitorización.}{%
+Los trabajos ejecutados mediante SLURM tienen una duración limitada y no mantienen un servicio permanente que Prometheus pueda consultar directamente. Por este motivo, se utilizó Pushgateway como punto de recepción de las métricas agregadas publicadas por cada ejecución. Prometheus consulta posteriormente este servicio y conserva las series temporales, mientras que Grafana proporciona los paneles de visualización. Esta separación permite adaptar el modelo de consulta de Prometheus a trabajo por lotes y mantener desacopladas la publicación, la recopilación y la presentación de las métricas \parencite{prometheusPushgateway}.
+}
+
+La visualización y monitorización de la plataforma se apoyan en Pushgateway, Prometheus y Grafana, desplegados mediante Docker en un VPS con Ubuntu 24.04. Estos componentes proporcionan una capa de observabilidad complementaria al almacenamiento de resultados. Mientras que los ficheros CSV y JSON recogen datos asociados a ejecuciones concretas, Pushgateway recibe los agregados de los trabajos, Prometheus los consulta periódicamente y Grafana permite visualizarlos mediante paneles.
+
+Prometheus trabaja con series identificadas por un nombre de métrica y un conjunto de etiquetas \parencite{prometheusDataModel}. En esta plataforma, dicho modelo permite identificar los agregados por campaña, programas de referencia y ejecución.
+
+Grafana se utiliza como interfaz de consulta y visualización mediante paneles conectados a Prometheus \parencite{grafanaDashboards}. El \emph{datasource} utiliza la dirección interna \texttt{http://prometheus:9090/prometheus}, mientras que Prometheus obtiene las métricas de \texttt{pushgateway:9091} mediante un \emph{job} de \emph{scraping}. Ambos enlaces se resuelven por el DNS interno de Docker y no necesitan atravesar el frontal público.
+
+El acceso exterior se concentra en HAProxy. El dominio \url{tfg-energy-lab.vasr.es} expone las subrutas \path{/grafana}, \path{/prometheus} y \path{/pushgateway}; el proxy termina TLS y reenvía cada petición al contenedor correspondiente. Certbot gestiona la obtención y renovación de certificados emitidos por Let's Encrypt. La configuración y los datos persistentes utilizan directorios enlazados mediante \emph{bind mounts}, aunque solo las plantillas sin secretos se incorporan al repositorio.
+
+\decisionbox{Decisión de infraestructura: trasladar la observabilidad a un VPS estable.}{%
+El primer prototipo publicaba las métricas hacia el equipo de desarrollo mediante la dirección asignada por la VPN universitaria. Esta solución permitió validar el flujo, pero la IP podía cambiar, exigía mantener el equipo disponible y dificultaba consultar campañas largas de forma remota. Se optó por desplegar el sistema de observabilidad en un VPS y proporcionar un único punto de entrada HTTPS mediante HAProxy. HPMoon solo necesita conocer una URL estable, mientras que Prometheus, Pushgateway y Grafana se comunican por la red interna de Docker.
+}
+
+La monitorización no sustituye al sistema de adquisición basado en RAPL. La adquisición experimental está delimitada por cada ejecución y produce resultados estructurados. La monitorización, en cambio, ofrece una visión continua del entorno. Ambas perspectivas son complementarias: una proporciona medidas asociadas a cada programas de referencia, y la otra permite observar el comportamiento general del sistema durante el tiempo en que se desarrollan las campañas.
+
+La figura~\ref{fig:monitorizacion} muestra la función transversal de Prometheus y Grafana respecto al flujo experimental.
+
+\begin{figure}[htbp]
+\centering
+\begin{tabular}{c@{}c@{}c}
+\diagramnodeaccent[0.24\textwidth]{HPMoon\\CSV/JSON + \texttt{PUT}} & \diagramarrow &
+\diagramnodeaccent[0.24\textwidth]{HAProxy HTTPS\\subrutas públicas} \\[4pt]
+&& \diagramdown \\[4pt]
+&& \diagramnode[0.24\textwidth]{Pushgateway :9091\\agregados por ejecución} \\
+&& \diagramdown \\[4pt]
+&& \diagramnode[0.24\textwidth]{Prometheus :9090\\\emph{scrape} interno} \\
+&& \diagramdown \\[4pt]
+&& \diagramnode[0.24\textwidth]{Grafana :3000\\\emph{datasource} interno}
+\end{tabular}
+\caption{Integración conceptual de monitorización y resultados experimentales.}
+\label{fig:monitorizacion}
+\end{figure}
+
+La figura \ref{fig:monitorizacion} refleja que la monitorización se sitúa en paralelo al flujo principal de adquisición y almacenamiento. Su finalidad es proporcionar contexto operativo, no modificar la ejecución ni calcular por sí sola los resultados principales de la campaña.
+
+Durante las pruebas Idle, la monitorización puede ayudar a comprobar que el nodo no presenta actividad inesperada que pueda afectar a la interpretación de la medida. Durante STREAM, puede ofrecer una vista temporal del uso de CPU y memoria asociado a una carga orientada al ancho de banda. Durante DGEMM, puede mostrar periodos de actividad intensiva del procesador. Estas observaciones sirven como apoyo al análisis posterior, sin introducir resultados experimentales en este capítulo.
+
+Grafana también resulta útil durante el desarrollo de la plataforma. Al ejecutar campañas automatizadas, el sistema puede producir múltiples trabajos y ficheros de salida. La observación mediante paneles facilita detectar si los trabajos se están ejecutando, si las métricas se actualizan y si el entorno responde de forma esperada. Esta capacidad es especialmente valiosa en campañas largas, donde revisar manualmente cada salida puede resultar poco eficiente.
+
+La monitorización debe integrarse sin alterar la reproducibilidad de los experimentos. Los paneles de Grafana pueden emplearse para inspección y supervisión, pero los datos principales deben permanecer almacenados en formatos estructurados asociados a cada ejecución. De este modo, la plataforma mantiene una separación clara entre los resultados experimentales y la observabilidad del sistema.
+
+En conjunto, la implementación combina automatización, adquisición energética, persistencia y monitorización. La fuente de verdad experimental son los CSV y JSON; Pushgateway, Prometheus y Grafana proporcionan publicación y consulta de agregados. El uso de Pushgateway se limita aquí a resultados de trabajos por lotes, uno de los casos restringidos contemplados por su documentación oficial, y exige gestionar explícitamente el ciclo de vida de las agrupaciones publicadas \parencite{prometheusPushgateway}. Esta separación mantiene la trazabilidad aunque el servicio remoto no esté disponible o cambie una visualización.
+
+\decisionbox{Decisión de observabilidad: persistir antes de publicar.}{%
+Los trabajos de SLURM son efímeros y Prometheus no puede depender de encontrarlos activos para consultarlos. Por ello, cada ejecución guarda primero sus CSV y JSON y solo después publica un resumen en Pushgateway mediante \texttt{PUT}. Las muestras brutas no se envían a la pasarela, ya que perderían su temporización original al ser escrapeadas y aumentarían innecesariamente la cardinalidad. Esta separación permite conservar un resultado experimental válido aunque falle el servicio remoto o cambie un panel de Grafana.
+}
+
+Los puertos internos 9091, 9090 y 3000 se mantienen dentro de las redes Docker; desde HPMoon se utiliza exclusivamente \url{https://tfg-energy-lab.vasr.es/pushgateway}. Las comprobaciones se separan por etapas: recepción en Pushgateway, estado del objetivo en Prometheus y consulta desde Grafana. El cliente parametriza URL, TLS y autenticación mediante configuración y variables de entorno, sin incorporar credenciales a los resultados. Las plantillas reproducibles del despliegue se conservan en \path{deploy/monitoring}.

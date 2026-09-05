@@ -1,0 +1,104 @@
+\chapter{Introducción}
+\label{cap:introduccion}
+
+\section{Contexto y motivación}
+\label{sec:introduccion_contexto}
+
+El aumento de la capacidad de procesamiento de los sistemas informáticos ha permitido abordar problemas cada vez más complejos y de mayor escala. La simulación científica, el análisis de datos y numerosos procesos de ingeniería recurren a la \textbf{computación de altas prestaciones} (HPC, \emph{High Performance Computing}) para ejecutar programas que requieren una carga importante de cálculo. En estas infraestructuras, el rendimiento depende tanto del hardware como del modo en que se organizan y se ejecutan las aplicaciones \parencite{hager2011}.
+
+El aumento de la capacidad computacional también incrementa la demanda energética y las necesidades asociadas de alimentación y refrigeración. Por ello, el rendimiento ya no puede considerarse de forma aislada. La existencia de clasificaciones específicas como Green500 refleja la relevancia adquirida por la eficiencia energética en el ámbito de los HPC \parencite{green500}; además, el consumo de una infraestructura incluye todo el hardware como procesadores, memoria, almacenamiento, red y sistemas auxiliares \parencite{barroso2018datacenter}.
+
+Una ejecución más rápida no es necesariamente energéticamente más eficiente. Asignar más recursos puede reducir el tiempo de ejecución pero también puede incrementar la energía consumida. El efecto final depende de la relación entre la calidad del trabajo realizado, la duración y la energía utilizada. En consecuencia, medir constituye un paso previo para poder comparar configuraciones e identificar aquellas que emplean recursos adicionales sin aportar una mejora proporcional.
+
+Este Trabajo Fin de Grado se desarrolla utilizando HPMoon, un clúster de computadores del Departamento de Ingeniería de Computadores, Automática y Robótica de la Universidad de Granada. Su propósito es crear una infraestructura experimental que permita ejecutar programas con cargas controladas y relacionar sus resultados de rendimiento computacional con medidas de consumo energético. El sistema genera información para analizar la relación entre rendimiento y consumo e identificar posibles configuraciones energéticamente ineficientes. No aplica automáticamente medidas de ahorro energético ni permite asegurar, por sí solo, que se reduzcan el consumo de energía o las emisiones.
+
+\section{Problema abordado}
+\label{sec:introduccion_problema}
+
+Medir el consumo de energía de un conjunto de programas en un clúster no consiste únicamente en consultar un valor de un contador. Una medida se puede interpretar si se conoce qué carga la produjo, qué recursos se han utilizado, cuándo comenzó y terminó su ejecución, qué nodo/s lo ejecutó y si los resultados de la ejecución son correctos. La repetición de la ejecución del conjunto de programas de prueba exige, aplicar el mismo procedimiento y conservar muestras y metadatos sin depender de operaciones manuales difíciles de reproducir.
+
+El problema requiere coordinar la planificación de trabajos, la adquisición de medidas de energía, la delimitación temporal de cada carga, el tratamiento de errores, la persistencia de los resultados y su análisis. Las fuentes de medida no siempre miden lo mismo: una interfaz interna puede registrar el consumo de componentes concretos del procesador, mientras que un instrumento externo puede medir el consumo eléctrico de un conjunto más amplio del sistema. Compararlas exige tenerlo muy en cuenta.
+
+El objetivo de este trabajo es darle respuesta a la siguiente pregunta:
+\begin{quote}
+¿Cómo puede diseñarse un sistema automatizado y reproducible que permita ejecutar cargas controladas en un clúster, medir el consumo energético de sus CPU y organizar los resultados para facilitar su validación y análisis?
+\end{quote}
+La respuesta propuesta integra la definición declarativa de campañas, la ejecución controlada de programas de referencia en el clúster, la adquisición coordinada de medidas energéticas internas y externas, el almacenamiento estructurado de muestras y metadatos y la publicación de métricas para su monitorización.
+
+Los detalles de cada tecnología y su integración se verán en los capítulos posteriores.
+
+\section{Utilidad y aportación del proyecto}
+\label{sec:introduccion_utilidad}
+
+La aportación principal es construir una \textbf{infraestructura experimental automatizada, reproducible, trazable y ampliable}, y no una colección de lecturas aisladas. A partir de una configuración revisable, el sistema genera ejecuciones, solicita recursos al planificador, coordina la carga y las fuentes de medida, comprueba su estado y conserva tanto las series brutas como los resultados agregados.
+
+Esta automatización reduce las intervenciones repetitivas y aplica un procedimiento homogéneo a todas las combinaciones de una campaña. Cada ejecución recibe un identificador único que aparece en todos los archivos y resultados generados. Así se puede saber qué configuración, mediciones, registros y resultados pertenecen a una misma prueba.
+
+El sistema admite nuevas cargas, perfiles y campañas sin alterar el flujo fundamental. También mantiene separados los datos experimentales almacenados de su representación en la plataforma de monitorización, de modo que el análisis puede realizarse independientemente del panel utilizado para visualizarlos. Esta organización integra conceptos de arquitectura de computadores, sistemas operativos, HPC, ingeniería del software, administración de sistemas, observabilidad y análisis de datos dentro de una infraestructura real.
+
+Además de validar el desarrollo, las campañas permiten estudiar conjuntamente rendimiento, potencia y energía. Los datos obtenidos pueden reutilizarse como base para ampliar el estudio a otras aplicaciones o nodos de HPMoon, siempre que se documenten las condiciones de medida.
+
+\section{Objetivos}
+\label{sec:introduccion_objetivos}
+
+\subsection{Objetivo general}
+\label{subsec:objetivo_general}
+
+El objetivo general es diseñar, implementar y validar un sistema para medir y analizar el consumo energético de las CPU del clúster HPMoon durante la ejecución de cargas de trabajo controladas, facilitando la evaluación conjunta del rendimiento y la eficiencia energética.
+
+\subsection{Objetivos específicos}
+\label{subsec:objetivos_especificos}
+
+Para alcanzar este objetivo general se plantean los siguientes objetivos verificables:
+
+\begin{enumerate}
+    \item Caracterizar el entorno de ejecución y los mecanismos disponibles para planificar trabajos y obtener medidas energéticas.
+    \item Definir una arquitectura modular que separe la configuración de campañas, la ejecución de los programas de prueba, la adquisición de medidas, el almacenamiento, la monitorización y el análisis de los datos.
+    \item Automatizar la generación y ejecución de combinaciones de cargas, recursos y repeticiones.
+    \item Obtener periódicamente medidas internas del consumo energético de la CPU y almacenar los datos obtenidos como series temporales.
+    \item Integrar las mediciones de energía externas y sincronizarlas con la ejecución del programa de referencia.
+    \item Almacenar las muestras, los resultados calculados, los parámetros utilizados, los estados y los posibles errores de manera que pueda reconstruirse y auditarse cada ejecución.
+    \item Proporcionar un mecanismo de monitorización que permita consultar el desarrollo de campañas y visualizar sus resultados sin sustituir los datos originales.
+    \item Diseñar y ejecutar una campaña con cargas diferenciadas, varios niveles de paralelismo y suficientes repeticiones para evaluar la coherencia, la sensibilidad y la variabilidad de los resultados.
+    \item Desarrollar un procedimiento de análisis que permita recalcular los resultados a partir de las muestras originales y estudiar la relación entre rendimiento, potencia, consumo energético y eficiencia energética.
+\end{enumerate}
+
+Estos objetivos se corresponden con la descripción del entorno, el diseño e implementación, la metodología experimental y la validación desarrollados en los capítulos~\ref{chap:entorno}, \ref{chap:implementacion}, \ref{chap:diseno-experimental} y \ref{chap:validacion-experimental}.
+
+\section{Alcance y limitaciones}
+\label{sec:introduccion_alcance}
+
+El trabajo se centra principalmente en el consumo energético asociado a las CPU durante la ejecución de cargas de trabajo controladas en un nodo del clúster HPMoon. Para realizar la medida interna se utilizan los contadores Intel RAPL (\textit{Running Average Power Limit}), concretamente el dominio \texttt{package} de cada procesador físico. Este dominio proporciona una estimación de la energía consumida por el encapsulado del procesador, incluyendo la actividad de sus núcleos y otros componentes internos asociados, pero no contempla elementos externos a la CPU, como los dispositivos de almacenamiento, las interfaces de red, las fuentes de alimentación o los sistemas de refrigeración \parencite{khan2018Rapl,linuxPowercap}.
+
+Como medida complementaria se utiliza Vampire \parencite{diaz2024vampire}, un medidor externo instalado en el nodo que registra su consumo eléctrico global. Ambas herramientas observan, por tanto, niveles diferentes del sistema: RAPL permite estudiar el comportamiento energético asociado a los procesadores, mientras que Vampire proporciona una visión del consumo del nodo completo. La comparación entre ambas medidas no busca que sus valores coincidan, sino analizar la relación entre la actividad energética de las CPU y el consumo eléctrico global del sistema.
+
+La medida interna mediante RAPL y la medida externa proporcionada por
+Vampire corresponden a dominios energéticos diferentes. RAPL permite
+observar el consumo asociado a los dominios \texttt{package} de los
+procesadores, mientras que Vampire registra el consumo eléctrico global
+del nodo. Por este motivo, ambas medidas no se emplean para comprobar
+una equivalencia directa entre sus valores.
+
+Su utilización conjunta permite, en cambio, estudiar qué proporción del
+consumo global observado está asociada a los dominios del procesador
+medidos mediante RAPL y analizar cómo evoluciona esta relación ante
+distintos tipos de carga y configuraciones de ejecución. Para que este
+análisis sea válido, ambas medidas deben corresponder al mismo intervalo
+temporal y considerarse las diferencias inherentes al alcance y al método
+de medida de cada herramienta.
+
+\section{Metodología general}
+\label{sec:introduccion_metodologia}
+
+En este proyecto se ha seguido un proceso incremental que combina ingeniería del software y metodología experimental. Primero se estudiaron el entorno de ejecución, los sistemas de medida y las restricciones operativas del clúster de pruebas. A continuación, se definieron los distintos componentes del sistema y el cometido de cada uno, separando la ejecución de las cargas, el muestreo energético, la gestión de campañas, el almacenamiento de resultados y la publicación de métricas entre servicios para su monitorización e interpretación.
+
+Las pruebas funcionales y las primeras ejecuciones permitieron detectar problemas de sincronización y asociación entre el nodo y el medidor. Tras corregirlos, se definió la campaña final, cada configuración activa se ejecutó cinco veces y se aplicaron controles de integridad, completitud y recálculo. Finalmente, los resultados se agregaron mediante estadística descriptiva y se analizaron en relación con los recursos asignados. Los detalles del diseño experimental y del procedimiento de ejecución se desarrollan en el capítulo~\ref{chap:diseno-experimental}.
+
+\section{Estructura de la memoria}
+\label{sec:introduccion_estructura}
+
+El capítulo~\ref{chap:antecedentes} presenta los conceptos de HPC, consumo energético, arquitectura de CPU, técnicas de medida y herramientas necesarias para establecer las bases del trabajo. El capítulo~\ref{chap:entorno} describe el clúster HPMoon y las condiciones concretas en las que se llevan a cabo las ejecuciones en la plataforma.
+
+El capítulo~\ref{chap:implementacion} expone la arquitectura y la implementación del flujo experimental, desde la generación de trabajos hasta la persistencia y monitorización. El capítulo~\ref{chap:diseno-experimental} justifica las cargas de trabajo, las variables utilizadas, los perfiles de ejecución, el número de repeticiones de cada ejecución y el procedimiento empleado en la campaña.
+
+El capítulo~\ref{chap:validacion-experimental} comprueba la integridad de los datos y analiza los resultados de consumo energético, rendimiento y repetibilidad. El capítulo~\ref{chap:planificacion} resume cómo se ha desarrollado el proyecto, los recursos utilizados, los costes y los riesgos tomados. Por último, en el capítulo~\ref{chap:conclusiones} se valora el cumplimiento de los objetivos, se extraen las conclusiones y se proponen posibles líneas de continuación del trabajo. Los anexos describen el entorno de ejecución, la campaña final, los componentes software, los paneles de control y el procedimiento reproducible de análisis.

@@ -1,0 +1,51 @@
+# Runtime and generated experiment output
+slurm/generated/
+env/
+results/
+runtime/
+__pycache__/
+tests/__pycache__/
+scripts/__pycache__/
+*.py[cod]
+*.pyc
+*_smoke_*.csv
+*.log
+*.out
+*.err
+*.bak
+
+# Compiled benchmarks
+benchmarks/c/compute-dgemm-hpc/compute-dgemm-hpc
+benchmarks/c/memory-stream-hpc/memory-stream-hpc
+
+# Local archives, diagnostics and review material
+artifacts/
+analysis/diagnostics/
+/imagenes/
+/*.zip
+/*.tar.gz
+memoria/TFG_v1_tutor*
+memoria/REVISION*.md
+memoria/auditoria_*.md
+
+# LaTeX-generated files
+memoria/*.aux
+memoria/*.bcf
+memoria/*.bbl
+memoria/*.blg
+memoria/*.fdb_latexmk
+memoria/*.fls
+memoria/*.lof
+memoria/*.log
+memoria/*.lot
+memoria/*.out
+memoria/*.pdf
+memoria/*.run.xml
+memoria/*.synctex.gz
+memoria/*.toc
+
+# Datos y secretos del despliegue de observabilidad
+deploy/monitoring/.env
+deploy/monitoring/volumes/
+deploy/monitoring/haproxy/certs/
+deploy/monitoring/haproxy/certbot/

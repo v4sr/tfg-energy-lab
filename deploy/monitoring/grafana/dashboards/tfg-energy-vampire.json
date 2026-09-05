@@ -1,0 +1,1595 @@
+{
+  "id": null,
+  "uid": "tfg-energy-vampire",
+  "title": "TFG Energy - RAPL vs Vampire",
+  "tags": [
+    "TFG",
+    "RAPL",
+    "Vampire"
+  ],
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "browser",
+  "refresh": false,
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "DS_PROMETHEUS",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {}
+      },
+      {
+        "name": "campaign",
+        "label": "Campaña",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status, campaign)",
+          "refId": "var-campaign"
+        },
+        "definition": "label_values(tfg_run_status, campaign)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "allValue": ".*",
+        "current": {}
+      },
+      {
+        "name": "benchmark",
+        "label": "Benchmark",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\"}, benchmark)",
+          "refId": "var-benchmark"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\"}, benchmark)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "profile",
+        "label": "Perfil",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\"}, profile)",
+          "refId": "var-profile"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\"}, profile)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "cores",
+        "label": "Núcleos",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, cores)",
+          "refId": "var-cores"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, cores)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "threads",
+        "label": "Hilos",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\"}, threads)",
+          "refId": "var-threads"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\"}, threads)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "node",
+        "label": "Nodo",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, node)",
+          "refId": "var-node"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, node)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "run_id",
+        "label": "Ejecución (selecciona una)",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, run_id)",
+          "refId": "var-run_id"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, run_id)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "allValue": ".*",
+        "current": {}
+      },
+      {
+        "name": "rep",
+        "label": "Repetición",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, rep)",
+          "refId": "var-rep"
+        },
+        "definition": "label_values(tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, rep)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "vampire_device",
+        "label": "Dispositivo Vampire (tabla)",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_PROMETHEUS}"
+        },
+        "query": {
+          "query": "label_values(tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, vampire_device)",
+          "refId": "var-vampire_device"
+        },
+        "definition": "label_values(tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\"}, vampire_device)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 100,
+      "title": "1 · Explicación",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 1,
+      "title": "RAPL y Vampire: alcance de las mediciones",
+      "type": "text",
+      "datasource": null,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 5
+      },
+      "targets": [],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "RAPL mide internamente los dominios energéticos de CPU disponibles. Vampire mide externamente la electricidad del servidor monitorizado. Sus alcances no son idénticos: la diferencia no se atribuye automáticamente a un componente concreto."
+      }
+    },
+    {
+      "id": 101,
+      "title": "2 · Ejecución seleccionada (requiere un único run_id)",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "title": "Energía interna frente a externa",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "A",
+          "legendFormat": "Interna · RAPL",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "B",
+          "legendFormat": "Externa · Vampire",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "joule",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 3,
+      "title": "Potencia media interna frente a externa",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_internal_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "A",
+          "legendFormat": "Interna · RAPL",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "B",
+          "legendFormat": "Externa · Vampire",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 4,
+      "title": "Potencia máxima interna frente a externa",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_internal_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "A",
+          "legendFormat": "Interna · RAPL",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "B",
+          "legendFormat": "Externa · Vampire",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 5,
+      "title": "Diferencia y cobertura",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"} - on(campaign,benchmark,profile,cores,threads,rep,node,run_id) tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "A",
+          "legendFormat": "Diferencia: Vampire − RAPL",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "100 * tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"} / on(campaign,benchmark,profile,cores,threads,rep,node,run_id) (tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"} > 0)",
+          "refId": "B",
+          "legendFormat": "Cobertura: RAPL / Vampire × 100",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 6,
+      "title": "Duración y validez",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 28,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "A",
+          "legendFormat": "Duración del benchmark",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_capture_window_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "B",
+          "legendFormat": "Ventana de captura Vampire",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "C",
+          "legendFormat": "Estado RAPL",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",cores=~\"$cores\",threads=~\"$threads\",node=~\"$node\",run_id=~\"$run_id\",rep=~\"$rep\"}",
+          "refId": "D",
+          "legendFormat": "Estado Vampire",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "Correcto",
+                  "color": "#56A64B"
+                },
+                "0": {
+                  "text": "Fallido",
+                  "color": "#E02F44"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 102,
+      "title": "3 · Escalado por cores",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 7,
+      "title": "Energía media por número de cores",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "avg by (cores) (tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\"})",
+          "refId": "A",
+          "legendFormat": "Interna · RAPL · {{cores}} cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "avg by (cores) (tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\"})",
+          "refId": "B",
+          "legendFormat": "Externa · Vampire · {{cores}} cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "Media de las repeticiones seleccionadas; barras no apiladas.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "joule",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 8,
+      "title": "Potencia media por número de cores",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 43,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "avg by (cores) (tfg_internal_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\"})",
+          "refId": "A",
+          "legendFormat": "Interna · RAPL · {{cores}} cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "avg by (cores) (tfg_external_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\"})",
+          "refId": "B",
+          "legendFormat": "Externa · Vampire · {{cores}} cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "Media de las repeticiones seleccionadas; barras no apiladas.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 9,
+      "title": "Duración media del benchmark por número de cores",
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 51,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "avg by (cores) (tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\"})",
+          "refId": "A",
+          "legendFormat": "{{cores}} cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "Media de duración real del benchmark para las repeticiones seleccionadas.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 103,
+      "title": "4 · Resultados y calidad",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "title": "Tabla de resultados",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 60,
+        "w": 24,
+        "h": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_experiment_duration_seconds{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "A",
+          "legendFormat": "duration_s",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "B",
+          "legendFormat": "energy_rapl_j",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "C",
+          "legendFormat": "energy_vampire_j",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_internal_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "D",
+          "legendFormat": "avg_power_rapl_w",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_average_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "E",
+          "legendFormat": "avg_power_vampire_w",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_internal_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "F",
+          "legendFormat": "peak_power_rapl_w",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_peak_power_watts{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "G",
+          "legendFormat": "peak_power_vampire_w",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "H",
+          "legendFormat": "vampire_status",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_run_status{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "I",
+          "legendFormat": "rapl_status",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"} - on(campaign,benchmark,profile,cores,threads,rep,node,run_id) tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"}",
+          "refId": "J",
+          "legendFormat": "difference_j",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "100 * tfg_internal_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"} / on(campaign,benchmark,profile,cores,threads,rep,node,run_id) (tfg_external_energy_joules{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\"} > 0)",
+          "refId": "K",
+          "legendFormat": "rapl_coverage_percent",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      },
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Capturas Vampire fallidas",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 72,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "tfg_external_capture_success{campaign=~\"$campaign\",benchmark=~\"$benchmark\",profile=~\"$profile\",threads=~\"$threads\",node=~\"$node\",rep=~\"$rep\",cores=~\"$cores\",vampire_device=~\"$vampire_device\"} == 0",
+          "refId": "A",
+          "legendFormat": "Fallida",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "description": "Sin filas significa: No hay capturas Vampire fallidas en la selección.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8F8F8F"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Interna · RAPL/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#56A64B"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Externa · Vampire/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/^Diferencia/"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794F2"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      },
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        }
+      ]
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "links": []
+}

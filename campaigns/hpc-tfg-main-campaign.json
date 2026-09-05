@@ -1,0 +1,110 @@
+{
+  "campaign_name": "hpc_tfg_main_campaign",
+  "launcher": "slurm",
+  "partition": "guest",
+  "nodelist": "compute-0-4",
+  "time_limit": "00:30:00",
+  "workdir": ".",
+  "duration": 120,
+  "pushgateway_url": "${PUSHGATEWAY_URL}",
+
+  "monitoring": {
+    "enabled": true,
+    "pushgateway": {
+      "url": "${PUSHGATEWAY_URL}",
+      "job": "tfg_energy_experiment",
+      "timeout_s": 10,
+      "retries": 3,
+      "retry_backoff_s": 2,
+      "tls_verify": true,
+      "authentication": {
+        "type": "none"
+      }
+    },
+    "publish": {
+      "internal_metrics": true,
+      "external_metrics": true
+    },
+    "grouping": {
+      "mode": "run_id"
+    },
+    "failure_policy": "continue"
+  },
+
+  "external_measurement": {
+    "enabled": true,
+    "provider": "vampire",
+    "vampire": {
+      "client_path": "${VAMPIRE_CLIENT_PATH}",
+      "user": "alemadbu",
+      "node_device_map": {
+        "compute-0-4": "hpm4"
+      },
+      "pre_capture_s": 2,
+      "post_capture_s": 15,
+      "sync_timeout_s": 480,
+      "command_timeout_s": 60,
+      "data_ready_timeout_s": 60,
+      "data_ready_poll_s": 5,
+      "failure_policy": "continue_internal"
+    }
+  },
+
+  "languages": ["c"],
+  "benchmarks": ["idle", "memory-stream-hpc", "compute-dgemm-hpc"],
+  "reps": [1, 2, 3, 4, 5],
+
+  "benchmark_params": {
+    "memory-stream-hpc": {
+      "size": 50000000
+    },
+    "compute-dgemm-hpc": {
+      "size": 1024
+    }
+  },
+
+  "execution_profiles": [
+    {
+      "name": "p1",
+      "threads": 1,
+      "processes": 1,
+      "cpus": 1,
+      "command_prefix": ""
+    },
+    {
+      "name": "p2",
+      "threads": 1,
+      "processes": 2,
+      "cpus": 2,
+      "command_prefix": ""
+    },
+    {
+      "name": "p4",
+      "threads": 1,
+      "processes": 4,
+      "cpus": 4,
+      "command_prefix": ""
+    },
+    {
+      "name": "p6",
+      "threads": 1,
+      "processes": 6,
+      "cpus": 6,
+      "command_prefix": ""
+    },
+    {
+      "name": "p8",
+      "threads": 1,
+      "processes": 8,
+      "cpus": 8,
+      "command_prefix": ""
+    },
+    {
+      "name": "p12",
+      "threads": 1,
+      "processes": 12,
+      "cpus": 12,
+      "command_prefix": ""
+    }
+  ]
+}

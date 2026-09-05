@@ -1,0 +1,269 @@
+% !TeX program = pdflatex
+% !TeX root = proyecto.tex
+\documentclass[a4paper,11pt]{book}
+%\documentclass[a4paper,twoside,11pt,titlepage]{book}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+
+% \usepackage[style=list, number=none]{glossary} %
+%\usepackage{titlesec}
+%\usepackage{pailatino}
+
+\decimalpoint
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{\esperiod}{-1}}
+\makeatletter
+\addto\shorthandsspanish{\let\esperiod\es@period@code}
+\makeatother
+
+
+%\usepackage[chapter]{algorithm}
+\RequirePackage{verbatim}
+%\RequirePackage[Glenn]{fncychap}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{afterpage}
+
+\usepackage{longtable}
+
+\usepackage{hyperref} %referencia
+
+\usepackage[
+backend=biber,
+style=apa,
+sorting=nyt
+]{biblatex}
+
+\DeclareLanguageMapping{spanish}{spanish-apa}
+
+\addbibresource{bibliografia/referencias.bib}
+
+% ********************************************************************
+% Re-usable information
+% ********************************************************************
+\newcommand{\myTitle}{Sistema de medida del consumo energético de las CPU de un clúster de computadores}
+\newcommand{\myDegree}{Grado en Ingeniería Informática}
+\newcommand{\myName}{Alejandro Madueño Buciegas}
+\newcommand{\myProf}{Jesús González Peñalver}
+\newcommand{\myOtherProf}{Beatriz Prieto Campos}
+%\newcommand{\mySupervisor}{Put name here\xspace}
+\newcommand{\myFaculty}{Escuela Técnica Superior de Ingenierías Informática y de
+Telecomunicación}
+\newcommand{\myFacultyShort}{E.T.S. de Ingenierías Informática y de
+Telecomunicación}
+\newcommand{\myUni}{\protect{Universidad de Granada}}
+\newcommand{\myLocation}{Granada}
+\newcommand{\myTime}{\today}
+\newcommand{\myVersion}{Versión final}
+
+
+\hypersetup{
+pdfauthor = {\myName},
+pdftitle = {\myTitle},
+pdfsubject = {Trabajo Fin de Grado sobre medida energética de CPU en un clúster},
+pdfkeywords = {eficiencia energética, Intel RAPL, HPC, SLURM, monitorización},
+pdfcreator = {LaTeX},
+pdfproducer = {pdflatex},
+colorlinks = true,
+linkcolor = blue,
+citecolor = blue,
+urlcolor = blue,
+}
+
+%\hyphenation{}
+
+
+%\usepackage{doxygen/doxygen}
+%\usepackage{pdfpages}
+\usepackage{url}
+\usepackage{colortbl,longtable}
+
+\setlength{\emergencystretch}{2em}
+\setcounter{biburlnumpenalty}{100}
+\setcounter{biburlucpenalty}{100}
+\setcounter{biburllcpenalty}{100}
+
+% Recuadro breve para destacar decisiones e incidencias de ingeniería.
+\newcommand{\decisionbox}[2]{%
+    \par\medskip
+    \begin{center}
+        \fcolorbox[gray]{0.35}{0.96}{%
+            \begin{minipage}{0.90\textwidth}
+                \small
+                \textbf{#1}\par\smallskip
+                #2
+            \end{minipage}%
+        }
+    \end{center}
+    \medskip
+}
+
+% Componentes vectoriales reutilizables para los esquemas de la memoria.
+\newcommand{\diagramnode}[2][0.19\textwidth]{%
+    \fcolorbox[gray]{0.35}{0.95}{%
+        \parbox[c][1.85cm][c]{%
+            \dimexpr#1-2\fboxsep-2\fboxrule\relax
+        }{\centering\small #2}%
+    }%
+}
+\newcommand{\diagramnodeaccent}[2][0.19\textwidth]{%
+    \fcolorbox[gray]{0.25}{0.87}{%
+        \parbox[c][1.85cm][c]{%
+            \dimexpr#1-2\fboxsep-2\fboxrule\relax
+        }{\centering\small\bfseries #2}%
+    }%
+}
+\newcommand{\diagramarrow}{\hspace{0.10cm}\ensuremath{\longrightarrow}\hspace{0.10cm}}
+\newcommand{\diagramleftarrow}{\hspace{0.10cm}\ensuremath{\longleftarrow}\hspace{0.10cm}}
+\newcommand{\diagramdown}{\ensuremath{\Big\downarrow}}
+\usepackage[stable]{footmisc}
+%\usepackage{index}
+
+%\makeindex
+%\usepackage[style=long, cols=2,border=plain,toc=true,number=none]{glossary}
+% \makeglossary
+
+% Definición de comandos que me son tiles:
+%\renewcommand{\indexname}{Índice alfabético}
+%\renewcommand{\glossaryname}{Glosario}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LO]{\leftmark}
+\fancyhead[RE]{\rightmark}
+\fancyhead[RO,LE]{\textbf{\thepage}}
+\renewcommand{\chaptermark}[1]{\markboth{\textbf{#1}}{}}
+\renewcommand{\sectionmark}[1]{\markright{\textbf{\thesection. #1}}}
+
+\setlength{\headheight}{1.5\headheight}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+%Definimos los tipos teorema, ejemplo y definición podremos usar estos tipos
+%simplemente poniendo \begin{teorema} \end{teorema} ...
+\newtheorem{teorema}{Teorema}[chapter]
+\newtheorem{ejemplo}{Ejemplo}[chapter]
+\newtheorem{definicion}{Definición}[chapter]
+
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+\definecolor{gray30}{gray}{.94}
+
+\lstset{ frame=Ltb,
+     framerule=0.5pt,
+     aboveskip=0.5cm,
+     framextopmargin=3pt,
+     framexbottommargin=3pt,
+     framexleftmargin=0.1cm,
+     framesep=0pt,
+     rulesep=.4pt,
+     backgroundcolor=\color{gray97},
+     rulesepcolor=\color{black},
+     %
+     stringstyle=\ttfamily,
+     showstringspaces = false,
+     basicstyle=\scriptsize\ttfamily,
+     commentstyle=\color{gray45},
+     keywordstyle=\bfseries,
+     %
+     numbers=left,
+     numbersep=6pt,
+     numberstyle=\tiny,
+     numberfirstline = false,
+     breaklines=true,
+   }
+ 
+% minimizar fragmentado de listados
+\lstnewenvironment{listing}[1][]
+   {\lstset{#1}\pagebreak[0]}{\pagebreak[0]}
+
+\lstdefinestyle{CodigoC}
+   {
+	basicstyle=\scriptsize,
+	frame=single,
+	language=C,
+	numbers=left
+   }
+\lstdefinestyle{CodigoC++}
+   {
+	basicstyle=\small,
+	frame=single,
+	backgroundcolor=\color{gray30},
+	language=C++,
+	numbers=left
+   }
+
+ 
+\lstdefinestyle{Consola}
+   {basicstyle=\scriptsize\bf\ttfamily,
+    backgroundcolor=\color{gray30},
+    frame=single,
+    numbers=none
+   }
+
+
+\newcommand{\bigrule}{\titlerule[0.5mm]}
+
+
+%Para conseguir que en las páginas en blanco no ponga cabecerass
+\makeatletter
+\def\clearpage{%
+  \ifvmode
+    \ifnum \@dbltopnum =\m@ne
+      \ifdim \pagetotal <\topskip
+        \hbox{}
+      \fi
+    \fi
+  \fi
+  \newpage
+  \thispagestyle{empty}
+  \write\m@ne{}
+  \vbox{}
+  \penalty -\@Mi
+}
+\makeatother
+
+\usepackage{pdfpages}
+\begin{document}
+
+\frontmatter
+
+% Portada
+\input{portada/portada}
+
+% Prefacios
+\input{prefacios/prefacio}
+
+\tableofcontents
+\listoffigures\listoftables
+
+\input{prefacios/glosario}
+
+\mainmatter
+
+% Memoria
+\input{capitulos/01_introduccion}
+\input{capitulos/02_antecedentes}
+\input{capitulos/03_entorno_experimental}
+\input{capitulos/04_diseno_implementacion}
+\input{capitulos/05_diseno_experimental}
+\input{capitulos/06_resultados}
+\input{capitulos/07_planificacion_costes}
+\input{capitulos/08_conclusiones}
+
+% Anexos
+\appendix
+
+\input{anexos/anexo_a_environment}
+\input{anexos/anexo_b_campaigns}
+\input{anexos/anexo_c_scripts}
+\input{anexos/anexo_d_dashboards}
+\input{anexos/anexo_e_dataset}
+
+\printbibliography[heading=bibintoc,title={Bibliografía}]
+\chapter*{}
+\thispagestyle{empty}
+
+\end{document}

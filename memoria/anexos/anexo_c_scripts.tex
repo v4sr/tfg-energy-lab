@@ -1,0 +1,34 @@
+\chapter{Componentes software}
+\label{anexo:scripts}
+
+El código fuente, los ficheros de configuración y los scripts de análisis desarrollados durante el proyecto se encuentran disponibles en el siguiente repositorio:
+
+\begin{center}
+    \url{https://github.com/v4sr/tfg-energy-lab}
+\end{center}
+
+La tabla~\ref{tab:componentes-software} relaciona los principales componentes del sistema con su responsabilidad. Los listados completos se encuentran en el repositorio y no se reproducen en este anexo.
+
+La tabla~\ref{tab:componentes-software} relaciona los principales componentes con su función. Los listados completos se se encuentran en el código fuente y no se incluyen en este anexo.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Componentes principales del sistema desarrollado.}
+    \label{tab:componentes-software}
+    \begin{tabular}{p{0.34\textwidth}p{0.55\textwidth}}
+        \hline
+        Componente & Responsabilidad \\
+        \hline
+        \path{run_matrix.py} & Lectura de campaña y generación de combinaciones. \\
+        \path{run_experiment.py} & Envío, seguimiento, agregación y persistencia de una ejecución. \\
+        \path{rapl_sampler.py} & Descubrimiento de dominios y adquisición periódica RAPL. \\
+        \path{vampire_integration.py} & Coordinación de la captura externa, sincronización y procesamiento de sus muestras. \\
+        Cliente externo Vampire & Herramienta facilitada por la Universidad de Granada para iniciar, detener y descargar una captura; no forma parte del código desarrollado ni se distribuye en el repositorio. \\
+        \path{monitoring.py} & Construcción y publicación del payload Prometheus. \\
+        \path{slurm/templates/benchmark.sbatch} & Coordinación en el nodo entre muestreador y benchmark. \\
+        \path{scripts/analyze_chapter6_20260723.py} & Validación y análisis reproducible de las medidas RAPL y Vampire del capítulo~6. \\
+        \hline
+    \end{tabular}
+\end{table}
+
+El conjunto actual contiene 36 pruebas unitarias que cubren la construcción de métricas, etiquetas y agrupaciones, la configuración de la monitorización, la selección del nodo, el cierre de Vampire ante fallos, el rechazo de ventanas incompletas y los reintentos de descarga. No se comunica con SLURM ni con los servicios remotos; por tanto, protege frente a regresiones del software, pero no sustituye las pruebas extremo a extremo en HPMoon y el VPS.
